@@ -39,14 +39,14 @@ export default class FilamentTree {
      * @param {Object} options - Configuration options
      * @param {number} options.maxDepth - Maximum nesting depth (default: 6)
      * @param {Object} options.livewireComponent - Livewire component instance
-     * @param {boolean} options.enableBatchSave - Enable batch save mode (default: false)
+     * @param {boolean} options.autoSave - Enable auto-save mode (default: true)
      */
     constructor(onMove, options = {}) {
         this.onMove = onMove;
         this.options = {
             maxDepth: options.maxDepth ?? 6,
             livewireComponent: options.livewireComponent || null,
-            enableBatchSave: options.enableBatchSave ?? false,
+            autoSave: options.autoSave ?? true,
         };
 
         // State management
@@ -245,8 +245,8 @@ export default class FilamentTree {
                         };
                     }
 
-                    if (this.options.enableBatchSave) {
-                        // Batch save mode: track changes and update DOM optimistically
+                    if (!this.options.autoSave) {
+                        // Manual save mode: track changes and update DOM optimistically
                         this.pendingMoves.push(moveData);
                         this.hasUnsavedChanges = true;
                         this.updateButtonStates();
@@ -257,7 +257,7 @@ export default class FilamentTree {
                         // Mark that we need reinit - will be handled by monitor after all handlers complete
                         this.needsReinit = true;
                     } else if (this.options.livewireComponent && moveData) {
-                        // Immediate save mode: save to server immediately
+                        // Auto-save mode: save to server immediately
                         // Also apply optimistic DOM update for instant feedback
                         this.applyMoveToDOM(source.element, item, instruction.operation, moveData);
                         this.needsReinit = true;
@@ -311,8 +311,8 @@ export default class FilamentTree {
                     referenceId: lastRootItemId,
                 };
 
-                if (this.options.enableBatchSave) {
-                    // Batch save mode: track changes and update DOM optimistically
+                if (!this.options.autoSave) {
+                    // Manual save mode: track changes and update DOM optimistically
                     this.pendingMoves.push(moveData);
                     this.hasUnsavedChanges = true;
                     this.updateButtonStates();
@@ -325,7 +325,7 @@ export default class FilamentTree {
                     // Mark that we need reinit
                     this.needsReinit = true;
                 } else if (this.options.livewireComponent) {
-                    // Immediate save mode: save to server immediately
+                    // Auto-save mode: save to server immediately
                     // Also apply optimistic DOM update for instant feedback
                     if (lastRootItem) {
                         this.applyMoveToDOM(source.element, lastRootItem, 'reorder-after', moveData);
@@ -525,7 +525,7 @@ export default class FilamentTree {
      * Save all pending moves to backend
      */
     saveChanges() {
-        if (!this.options.enableBatchSave || this.pendingMoves.length === 0) {
+        if (this.options.autoSave || this.pendingMoves.length === 0) {
             return;
         }
 
@@ -543,7 +543,7 @@ export default class FilamentTree {
      * Cancel all pending moves and reload from server
      */
     cancelChanges() {
-        if (!this.options.enableBatchSave) {
+        if (this.options.autoSave) {
             return;
         }
 
@@ -561,7 +561,7 @@ export default class FilamentTree {
      * Update Save/Cancel button states based on pending changes
      */
     updateButtonStates() {
-        if (!this.options.enableBatchSave) {
+        if (this.options.autoSave) {
             return;
         }
 

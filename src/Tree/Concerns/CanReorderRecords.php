@@ -8,7 +8,7 @@ trait CanReorderRecords
 {
     protected bool | Closure $isReorderable = true;
 
-    protected bool | Closure $shouldBatchSave = false;
+    protected bool | Closure $isAutoSave = true;
 
     public function reorderable(bool | Closure $condition = true): static
     {
@@ -17,9 +17,9 @@ trait CanReorderRecords
         return $this;
     }
 
-    public function batchSave(bool | Closure $condition = true): static
+    public function autoSave(bool | Closure $condition = true): static
     {
-        $this->shouldBatchSave = $condition;
+        $this->isAutoSave = $condition;
 
         return $this;
     }
@@ -29,8 +29,8 @@ trait CanReorderRecords
         return $this->evaluate($this->isReorderable);
     }
 
-    public function shouldBatchSave(): bool
+    public function isAutoSave(): bool
     {
-        return $this->evaluate($this->shouldBatchSave);
+        return $this->evaluate($this->isAutoSave);
     }
 }

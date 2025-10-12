@@ -60,7 +60,7 @@
                 @endif
 
                 {{-- Right Side: Status and Action Buttons --}}
-                @if ($tree->shouldBatchSave())
+                @if (!$tree->isAutoSave())
                 <div class="flex items-center gap-3">
                     {{-- Unsaved Changes Indicator --}}
                     <div
@@ -128,7 +128,7 @@
     <script>
         let treeInstance = null;
         const isCollapsible = {{ $tree->isCollapsible() ? 'true' : 'false' }};
-        const isBatchSave = {{ $tree->shouldBatchSave() ? 'true' : 'false' }};
+        const isAutoSave = {{ $tree->isAutoSave() ? 'true' : 'false' }};
         const defaultExpanded = {{ $tree->isDefaultExpanded() ? 'true' : 'false' }};
 
         function initTree() {
@@ -146,7 +146,7 @@
                 treeInstance = new window.FilamentTree(null, {
                     maxDepth: {{ $tree->getMaxDepth() }},
                     livewireComponent: component,
-                    enableBatchSave: isBatchSave,
+                    autoSave: isAutoSave,
                 });
 
                 treeInstance.init();
@@ -159,9 +159,9 @@
         Livewire.hook('commit', ({ component, respond }) => {
             respond(() => {
                 setTimeout(() => {
-                    // In batch save mode, only reinit if we don't have unsaved changes
+                    // In manual save mode (!autoSave), only reinit if we don't have unsaved changes
                     // Otherwise, reinitializing would wipe out our optimistic DOM updates
-                    if (isBatchSave && window.currentTreeInstance?.hasUnsavedChanges) {
+                    if (!isAutoSave && window.currentTreeInstance?.hasUnsavedChanges) {
                         // Just reinit event handlers, don't destroy and recreate
                         if (window.currentTreeInstance?.needsReinit) {
                             window.currentTreeInstance.reinit();
@@ -224,7 +224,7 @@
             applyInitialExpandState();
         }
 
-        if (isBatchSave) {
+        if (!isAutoSave) {
             const saveBtn = document.getElementById('tree-save-btn');
             const cancelBtn = document.getElementById('tree-cancel-btn');
 

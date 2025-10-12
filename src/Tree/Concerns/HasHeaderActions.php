@@ -2,31 +2,75 @@
 
 namespace Openplain\FilamentTreeView\Tree\Concerns;
 
-use Closure;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Illuminate\Support\Arr;
+use PHPUnit\Event\InvalidArgumentException;
 
 trait HasHeaderActions
 {
     /**
-     * @var array<Action> | Closure
+     * @var array<Action | ActionGroup>
      */
-    protected array | Closure $headerActions = [];
+    protected array $headerActions = [];
 
     /**
-     * @param  array<Action> | Closure  $actions
+     * @param  array<Action | ActionGroup> | ActionGroup  $actions
      */
-    public function headerActions(array | Closure $actions): static
+    public function headerActions(array | ActionGroup $actions): static
     {
-        $this->headerActions = $actions;
+        $this->headerActions = [];
+        $this->pushHeaderActions($actions);
 
         return $this;
     }
 
     /**
-     * @return array<Action>
+     * @param  array<Action | ActionGroup> | ActionGroup  $actions
+     */
+    public function pushHeaderActions(array | ActionGroup $actions): static
+    {
+        foreach (Arr::wrap($actions) as $action) {
+            if ($action instanceof ActionGroup) {
+                /** @var array<string, Action> $flatActions */
+                $flatActions = $action->getFlatActions();
+
+                $this->getLivewire()->mergeCachedFlatActions($flatActions);
+            } elseif ($action instanceof Action) {
+                $this->getLivewire()->cacheAction($action);
+            } else {
+                throw new InvalidArgumentException('Tree header actions must be an instance of [' . Action::class . '] or [' . ActionGroup::class . '].');
+            }
+
+            $this->headerActions[] = $action;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<Action | ActionGroup>
      */
     public function getHeaderActions(): array
     {
-        return $this->evaluate($this->headerActions);
+        return $this->headerActions;
+    }
+
+    /**
+     * @return array<string, Action>
+     */
+    public function getFlatHeaderActions(): array
+    {
+        $flatActions = [];
+
+        foreach ($this->getHeaderActions() as $action) {
+            if ($action instanceof ActionGroup) {
+                $flatActions = array_merge($flatActions, $action->getFlatActions());
+            } else {
+                $flatActions[$action->getName()] = $action;
+            }
+        }
+
+        return $flatActions;
     }
 }

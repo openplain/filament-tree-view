@@ -67,54 +67,64 @@
                     <div></div> {{-- Spacer for flex layout --}}
                 @endif
 
-                {{-- Right Side: Status and Action Buttons --}}
-                @if (!$tree->isAutoSave())
+                {{-- Right Side: Header Actions, Status and Action Buttons --}}
                 <div class="flex items-center gap-4">
-                    {{-- Unsaved Changes Indicator --}}
-                    <div
-                        id="tree-changes-indicator"
-                        class="hidden items-center gap-2"
-                        style="color: var(--warning-600);"
-                    >
-                        <svg class="h-4 w-4 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                        <span class="text-sm">Unsaved changes</span>
-                    </div>
+                    {{-- Header Actions --}}
+                    @if (count($headerActions = $tree->getHeaderActions()))
+                        <div class="flex items-center gap-2">
+                            @foreach ($headerActions as $action)
+                                {{ $action }}
+                            @endforeach
+                        </div>
+                    @endif
 
-                    {{-- Cancel Button --}}
-                    <x-filament::button
-                        type="button"
-                        id="tree-cancel-btn"
-                        color="gray"
-                        disabled
-                        size="md"
-                    >
-                        <x-slot name="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    {{-- Unsaved Changes Indicator and Save/Cancel Buttons --}}
+                    @if (!$tree->isAutoSave())
+                        {{-- Unsaved Changes Indicator --}}
+                        <div
+                            id="tree-changes-indicator"
+                            class="hidden items-center gap-2"
+                            style="color: var(--warning-600);"
+                        >
+                            <svg class="h-4 w-4 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                             </svg>
-                        </x-slot>
-                        Cancel
-                    </x-filament::button>
+                            <span class="text-sm">Unsaved changes</span>
+                        </div>
 
-                    {{-- Save Button --}}
-                    <x-filament::button
-                        type="button"
-                        id="tree-save-btn"
-                        color="gray"
-                        disabled
-                        size="md"
-                    >
-                        <x-slot name="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                        </x-slot>
-                        Save Changes
-                    </x-filament::button>
+                        {{-- Cancel Button --}}
+                        <x-filament::button
+                            type="button"
+                            id="tree-cancel-btn"
+                            color="gray"
+                            disabled
+                            size="md"
+                        >
+                            <x-slot name="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </x-slot>
+                            Cancel
+                        </x-filament::button>
+
+                        {{-- Save Button --}}
+                        <x-filament::button
+                            type="button"
+                            id="tree-save-btn"
+                            color="gray"
+                            disabled
+                            size="md"
+                        >
+                            <x-slot name="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            </x-slot>
+                            Save Changes
+                        </x-filament::button>
+                    @endif
                 </div>
-                @endif
             </div>
 
             <div class="filament-tree-container">

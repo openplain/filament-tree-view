@@ -44,11 +44,11 @@
                 </button>
 
                 {{-- Collapse/Expand Toggle - Fixed width for alignment --}}
-                <div class="flex-shrink-0" style="width: 2rem;">
+                <div class="flex-shrink-0" style="width: 1rem;">
                     @if ($hasChildren)
                         <button
                             type="button"
-                            class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                            class="py-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                             title="Toggle"
                             wire:click="toggleExpanded('{{ $record->id }}')"
                         >

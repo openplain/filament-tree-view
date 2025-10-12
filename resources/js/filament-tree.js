@@ -571,13 +571,27 @@ export default class FilamentTree {
 
         if (saveBtn && cancelBtn && indicator) {
             if (this.hasUnsavedChanges) {
-                saveBtn.disabled = false;
-                cancelBtn.disabled = false;
+                // Enable buttons (Filament style)
+                saveBtn.removeAttribute('disabled');
+                saveBtn.removeAttribute('aria-disabled');
+                saveBtn.classList.remove('fi-disabled');
+
+                cancelBtn.removeAttribute('disabled');
+                cancelBtn.removeAttribute('aria-disabled');
+                cancelBtn.classList.remove('fi-disabled');
+
                 indicator.classList.remove('hidden');
                 indicator.classList.add('flex');
             } else {
-                saveBtn.disabled = true;
-                cancelBtn.disabled = true;
+                // Disable buttons (Filament style)
+                saveBtn.setAttribute('disabled', '');
+                saveBtn.setAttribute('aria-disabled', 'true');
+                saveBtn.classList.add('fi-disabled');
+
+                cancelBtn.setAttribute('disabled', '');
+                cancelBtn.setAttribute('aria-disabled', 'true');
+                cancelBtn.classList.add('fi-disabled');
+
                 indicator.classList.add('hidden');
                 indicator.classList.remove('flex');
             }

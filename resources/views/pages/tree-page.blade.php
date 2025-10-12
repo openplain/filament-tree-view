@@ -30,30 +30,38 @@
 
         @if (count($records) > 0)
             {{-- Header Bar --}}
-            <div class="flex items-center justify-between gap-3 mb-6">
+            <div class="flex items-center justify-between gap-3 mb-2">
                 {{-- Left Side: Expand/Collapse Buttons --}}
                 @if ($tree->isCollapsible())
-                    <div class="inline-flex rounded-lg shadow-sm">
-                    <button
+                    <div class="fi-btn-group">
+                    <x-filament::button
                         type="button"
                         id="tree-expand-all"
-                        class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-gray fi-btn-color-gray fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 ring-1 ring-gray-950/10 dark:ring-white/20 fi-ac-action fi-ac-btn-action rounded-r-none"
+                        color="gray"
+                        size="md"
+                        grouped
                     >
-                        <svg class="fi-btn-icon transition duration-75 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span class="fi-btn-label">Expand</span>
-                    </button>
-                    <button
+                        <x-slot name="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                        </x-slot>
+                        Expand
+                    </x-filament::button>
+                    <x-filament::button
                         type="button"
                         id="tree-collapse-all"
-                        class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-gray fi-btn-color-gray fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 ring-1 ring-gray-950/10 dark:ring-white/20 fi-ac-action fi-ac-btn-action rounded-l-none -ml-px"
+                        color="gray"
+                        size="md"
+                        grouped
                     >
-                        <svg class="fi-btn-icon transition duration-75 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                        </svg>
-                        <span class="fi-btn-label">Collapse</span>
-                    </button>
+                        <x-slot name="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                            </svg>
+                        </x-slot>
+                        Collapse
+                    </x-filament::button>
                 </div>
                 @else
                     <div></div> {{-- Spacer for flex layout --}}
@@ -61,44 +69,50 @@
 
                 {{-- Right Side: Status and Action Buttons --}}
                 @if (!$tree->isAutoSave())
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     {{-- Unsaved Changes Indicator --}}
                     <div
                         id="tree-changes-indicator"
-                        class="hidden items-center gap-2 text-warning-600 dark:text-warning-400"
+                        class="hidden items-center gap-2"
+                        style="color: var(--warning-600);"
                     >
-                        <svg class="h-4 w-4 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <svg class="h-4 w-4 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
-                        <span class="text-sm font-medium">Unsaved changes</span>
+                        <span class="text-sm">Unsaved changes</span>
                     </div>
 
                     {{-- Cancel Button --}}
-                    <button
+                    <x-filament::button
                         type="button"
                         id="tree-cancel-btn"
+                        color="gray"
                         disabled
-                        class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-gray fi-btn-color-gray fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 ring-1 ring-gray-950/10 dark:ring-white/20 fi-ac-action fi-ac-btn-action disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                        size="md"
                     >
-                        <svg class="fi-btn-icon transition duration-75 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span class="fi-btn-label">Cancel</span>
-                    </button>
+                        <x-slot name="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </x-slot>
+                        Cancel
+                    </x-filament::button>
 
                     {{-- Save Button --}}
-                    <button
+                    <x-filament::button
                         type="button"
                         id="tree-save-btn"
+                        color="gray"
                         disabled
-                        class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-primary fi-btn-color-primary fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-custom-600 text-white hover:bg-custom-500 dark:bg-custom-500 dark:hover:bg-custom-400 ring-1 ring-custom-600 dark:ring-custom-500 fi-ac-action fi-ac-btn-action disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
-                        style="--c-400:var(--primary-400);--c-500:var(--primary-500);--c-600:var(--primary-600);"
+                        size="md"
                     >
-                        <svg class="fi-btn-icon transition duration-75 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                        <span class="fi-btn-label">Save Changes</span>
-                    </button>
+                        <x-slot name="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                        </x-slot>
+                        Save Changes
+                    </x-filament::button>
                 </div>
                 @endif
             </div>

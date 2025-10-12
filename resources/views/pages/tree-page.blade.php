@@ -4,33 +4,24 @@
             $records = $this->getTreeRecords();
         @endphp
 
-        {{-- Filament Table Wrapper --}}
-        <div class="fi-ta">
-            <div class="fi-ta-ctn divide-y divide-gray-200 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:divide-white/10 dark:bg-gray-900 dark:ring-white/10">
-                @if (count($records) > 0)
-                    <div class="fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10 dark:border-t-white/10">
-                        <div class="filament-tree-container">
-                            @foreach ($records as $record)
-                                @include('filament-tree-view::tree-node', [
-                                    'record' => $record,
-                                    'depth' => 0,
-                                    'maxDepth' => $tree->getMaxDepth(),
-                                    'livewire' => $this
-                                ])
-                            @endforeach
-                        </div>
-                    </div>
-                @else
-                    <div class="fi-ta-empty-state px-6 py-12">
-                        <div class="fi-ta-empty-state-content mx-auto grid max-w-lg justify-items-center text-center">
-                            <div class="fi-ta-empty-state-description text-sm text-gray-500 dark:text-gray-400">
-                                No records found.
-                            </div>
-                        </div>
-                    </div>
-                @endif
+        @if (count($records) > 0)
+            <div class="filament-tree-container">
+                @foreach ($records as $record)
+                    @include('filament-tree-view::tree-node', [
+                        'record' => $record,
+                        'depth' => 0,
+                        'maxDepth' => $tree->getMaxDepth(),
+                        'livewire' => $this
+                    ])
+                @endforeach
             </div>
-        </div>
+        @else
+            <div class="rounded-xl bg-white px-6 py-12 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+                <div class="mx-auto grid max-w-lg justify-items-center text-center">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No records found.</p>
+                </div>
+            </div>
+        @endif
     @endif
 
     <x-filament-actions::modals />

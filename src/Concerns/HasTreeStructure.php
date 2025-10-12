@@ -8,6 +8,24 @@ trait HasTreeStructure
 {
     use HasRecursiveRelationships;
 
+    /**
+     * Boot the HasTreeStructure trait.
+     * Automatically cascade delete all descendants when a node is deleted.
+     */
+    protected static function bootHasTreeStructure(): void
+    {
+        static::deleting(function ($model) {
+            // Only cascade delete if not force deleting (to allow soft delete to work)
+            if (method_exists($model, 'isForceDeleting') && $model->isForceDeleting()) {
+                // Force delete all descendants
+                $model->descendants()->forceDelete();
+            } else {
+                // Regular delete all descendants (respects soft deletes)
+                $model->descendants()->delete();
+            }
+        });
+    }
+
     public function getParentKeyName(): string
     {
         return 'parent_id';

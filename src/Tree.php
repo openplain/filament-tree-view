@@ -20,6 +20,7 @@ class Tree extends ViewComponent
     use Tree\Concerns\HasHeaderActions;
     use Tree\Concerns\HasQuery;
     use Tree\Concerns\HasRecordAction;
+    use Tree\Concerns\HasRecordActions;
     use Tree\Concerns\HasRecords;
     use Tree\Concerns\HasRecordUrl;
 
@@ -64,6 +65,15 @@ class Tree extends ViewComponent
                 'model' => $tree->getModelLabel(),
             ]);
         });
+    }
+
+    /**
+     * Get a cached action by name.
+     * This method is used by resolveTreeAction() to retrieve actions.
+     */
+    public function getCachedAction(string $name): ?\Filament\Actions\Action
+    {
+        return $this->getLivewire()->getCachedAction($name);
     }
 
     /**

@@ -71,11 +71,9 @@ trait InteractsWithTree
         foreach ($nodes as $node) {
             if ($node->parent_id == $parentId || ($node->parent_id === null && $parentId === null)) {
                 $children = $this->buildNestedArray($nodes, $node->id);
-                // Convert to array and add children
-                $nodeData = $node->toArray();
-                $nodeData['children'] = $children;
-                // Convert back to object for consistent access
-                $branch[] = (object) $nodeData;
+                // Keep the model instance and add children as a relation
+                $node->setRelation('children', collect($children));
+                $branch[] = $node;
             }
         }
 
@@ -210,6 +208,100 @@ trait InteractsWithTree
         $defaultExpanded = $this->getTree()->isDefaultExpanded();
 
         return $this->treeState[$recordId] ?? $defaultExpanded;
+    }
+
+    /**
+     * Resolve a record from its key for actions.
+     * This method is called by getTreeRecord() when resolving actions.
+     */
+    public function getTreeRecord(int | string $key): ?\Illuminate\Database\Eloquent\Model
+    {
+        $modelClass = $this->getTree()->getQuery()->getModel()::class;
+
+        return $modelClass::find($key);
+    }
+
+    /**
+     * Override Filament's action resolution to handle tree actions.
+     * This intercepts the action resolution process to check if the action belongs to the tree.
+     *
+     * @param  array<array<string, mixed>>  $actions
+     * @return array<\Filament\Actions\Action>
+     */
+    protected function resolveActions(array $actions): array
+    {
+        $resolvedActions = [];
+
+        foreach ($actions as $actionNestingIndex => $action) {
+            if (blank($action['name'] ?? null)) {
+                throw new \Filament\Actions\Exceptions\ActionNotResolvableException('An action tried to resolve without a name.');
+            }
+
+            // Check if this is a tree action by looking in the cached actions on the Livewire component
+            $isTreeAction = ! count($resolvedActions) && array_key_exists($action['name'], $this->cachedActions);
+
+            if ($isTreeAction) {
+                $resolvedAction = $this->resolveTreeAction($action, $resolvedActions);
+            } else {
+                // Fall back to parent resolution (handles schemaComponent, table, and regular actions)
+                $resolvedAction = parent::resolveActions([$actionNestingIndex => $action])[0] ?? null;
+
+                if (! $resolvedAction) {
+                    continue;
+                }
+
+                $resolvedActions[] = $resolvedAction;
+                continue;
+            }
+
+            if (! $resolvedAction) {
+                continue;
+            }
+
+            $resolvedAction->nestingIndex($actionNestingIndex);
+            $resolvedAction->boot();
+
+            $resolvedActions[] = $resolvedAction;
+
+            $this->cacheSchema(
+                "mountedActionSchema{$actionNestingIndex}",
+                $this->getMountedActionSchema($actionNestingIndex, $resolvedAction),
+            );
+        }
+
+        return $resolvedActions;
+    }
+
+    /**
+     * Resolve a tree-specific action.
+     * This method is called by our overridden resolveActions() method.
+     *
+     * @param  array<string, mixed>  $action
+     * @param  array<\Filament\Actions\Action>  $parentActions
+     */
+    protected function resolveTreeAction(array $action, array $parentActions): \Filament\Actions\Action
+    {
+        if (! ($this instanceof \Openplain\FilamentTreeView\Contracts\HasTree)) {
+            throw new \Filament\Actions\Exceptions\ActionNotResolvableException('Failed to resolve tree action for Livewire component without the [' . \Openplain\FilamentTreeView\Contracts\HasTree::class . '] interface.');
+        }
+
+        $resolvedAction = null;
+
+        if (count($parentActions)) {
+            $parentAction = \Illuminate\Support\Arr::last($parentActions);
+            $resolvedAction = $parentAction->getModalAction($action['name']) ?? throw new \Filament\Actions\Exceptions\ActionNotResolvableException("Action [{$action['name']}] was not found for action [{$parentAction->getName()}].");
+        } else {
+            // Get the action from cached actions on the Livewire component
+            $resolvedAction = $this->cachedActions[$action['name']] ?? throw new \Filament\Actions\Exceptions\ActionNotResolvableException("Action [{$action['name']}] not found on tree.");
+        }
+
+        if (filled($action['context']['recordKey'] ?? null)) {
+            $record = $this->getTreeRecord($action['context']['recordKey']);
+
+            $resolvedAction->getRootGroup()?->record($record) ?? $resolvedAction->record($record);
+        }
+
+        return $resolvedAction;
     }
 
     /**

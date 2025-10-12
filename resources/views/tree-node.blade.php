@@ -15,6 +15,30 @@
 @php
     // Check if this node has children
     $hasChildren = isset($record->children) && count($record->children) > 0;
+
+    // Get tree instance
+    $tree = $livewire->getTree();
+
+    // Get and filter record actions for this record
+    $recordActions = array_reduce(
+        $tree->getRecordActions(),
+        function (array $carry, $action) use ($record): array {
+            $action = $action->getClone();
+
+            if (! $action instanceof \Filament\Actions\BulkAction) {
+                $action->record($record);
+            }
+
+            if ($action->isHidden()) {
+                return $carry;
+            }
+
+            $carry[] = $action;
+
+            return $carry;
+        },
+        [],
+    );
 @endphp
 
 {{-- Tree Item Container --}}
@@ -70,6 +94,15 @@
                         </div>
                     @endif
                 </div>
+
+                {{-- Record Actions --}}
+                @if (count($recordActions))
+                    <div class="filament-tree-node-actions flex items-center gap-1 ml-auto mr-2">
+                        @foreach ($recordActions as $action)
+                            {{ $action }}
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     </div>

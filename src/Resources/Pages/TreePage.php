@@ -87,12 +87,57 @@ class TreePage extends Page implements HasTree
                     }
 
                     $action->record($record);
+                    $action->getGroup()?->record($record);
 
                     if ($action->isHidden()) {
                         continue;
                     }
 
+                    if ($action->getUrl()) {
+                        continue;
+                    }
+
                     return $action->getName();
+                }
+
+                return null;
+            })
+            ->recordUrl(function (Model $record, Tree $tree): ?string {
+                foreach (['view', 'edit'] as $action) {
+                    $action = $tree->getAction($action);
+
+                    if (! $action) {
+                        continue;
+                    }
+
+                    $action->record($record);
+                    $action->getGroup()?->record($record);
+
+                    if ($action->isHidden()) {
+                        continue;
+                    }
+
+                    $url = $action->getUrl();
+
+                    if (! $url) {
+                        continue;
+                    }
+
+                    return $url;
+                }
+
+                $resource = static::getResource();
+
+                foreach (['view', 'edit'] as $action) {
+                    if (! $resource::hasPage($action)) {
+                        continue;
+                    }
+
+                    if (! $resource::{'can' . ucfirst($action)}($record)) {
+                        continue;
+                    }
+
+                    return $this->getResourceUrl($action, ['record' => $record]);
                 }
 
                 return null;

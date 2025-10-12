@@ -248,8 +248,6 @@ export default class FilamentTree {
                     if (this.options.enableBatchSave) {
                         this.pendingMoves.push(moveData);
                         this.hasUnsavedChanges = true;
-                        this.applyMoveToDOM(source.element, item, instruction.operation, moveData);
-                        this.needsReinit = true;
                         this.updateButtonStates();
                     } else if (this.options.livewireComponent && moveData) {
                         this.options.livewireComponent.$wire.reorderTree([moveData]);
@@ -301,7 +299,6 @@ export default class FilamentTree {
                 if (this.options.enableBatchSave) {
                     this.pendingMoves.push(moveData);
                     this.hasUnsavedChanges = true;
-                    this.needsReinit = true;
                     this.updateButtonStates();
                 } else if (this.options.livewireComponent) {
                     this.options.livewireComponent.$wire.reorderTree([moveData]);

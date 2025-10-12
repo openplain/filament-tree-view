@@ -64,32 +64,119 @@ trait InteractsWithTree
             ->toTree();
     }
 
-    public function reorderTree(array $order): void
+    public function reorderTree(array $moves): void
     {
-        foreach ($order as $item) {
-            $this->reorderTreeItem($item);
+        if (empty($moves)) {
+            return;
+        }
+
+        foreach ($moves as $moveData) {
+            $this->processSingleMove($moveData);
         }
 
         $this->dispatch('tree-reordered');
     }
 
-    protected function reorderTreeItem(array $item, ?int $parentId = null, int $position = 0): void
+    protected function processSingleMove(array $data): void
     {
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
-        $record = $modelClass::find($item['id']);
+        $nodeId = $data['nodeId'];
+        $newParentId = $data['newParentId'] ?? -1;
+        $position = $data['position'] ?? 'after';
+        $referenceId = $data['referenceId'] ?? null;
 
-        if (! $record) {
+        $modelClass = $this->getTree()->getQuery()->getModel()::class;
+        $node = $modelClass::find($nodeId);
+
+        if (! $node) {
             return;
         }
 
-        $record->parent_id = $parentId;
-        $record->order = $position;
-        $record->save();
+        // Remember old parent
+        $oldParentId = $node->parent_id;
 
-        if (isset($item['children'])) {
-            foreach ($item['children'] as $index => $child) {
-                $this->reorderTreeItem($child, $item['id'], $index);
+        // Move to new parent
+        $node->parent_id = $newParentId === -1 ? null : $newParentId;
+        $node->save();
+
+        // Reorder siblings in old parent
+        if ($oldParentId !== $newParentId) {
+            $this->reorderSiblings($oldParentId);
+        }
+
+        // Position in new parent
+        $this->reorderSiblingsWithInsert($newParentId, $nodeId, $position, $referenceId);
+    }
+
+    protected function reorderSiblings(?int $parentId): void
+    {
+        $modelClass = $this->getTree()->getQuery()->getModel()::class;
+
+        if ($parentId === -1 || $parentId === null) {
+            $siblings = $modelClass::whereNull('parent_id');
+        } else {
+            $siblings = $modelClass::where('parent_id', $parentId);
+        }
+
+        $siblings = $siblings->orderBy('order')->orderBy('id')->get();
+
+        $order = 1;
+        foreach ($siblings as $sibling) {
+            if ($sibling->order !== $order) {
+                $sibling->order = $order;
+                $sibling->save();
             }
+            $order++;
+        }
+    }
+
+    protected function reorderSiblingsWithInsert(int $parentId, int $nodeId, string $position, ?int $referenceId): void
+    {
+        $modelClass = $this->getTree()->getQuery()->getModel()::class;
+
+        if ($parentId === -1) {
+            $siblings = $modelClass::whereNull('parent_id');
+        } else {
+            $siblings = $modelClass::where('parent_id', $parentId);
+        }
+
+        $siblings = $siblings->orderBy('order')->orderBy('id')->get();
+
+        $movedNode = $siblings->firstWhere('id', $nodeId);
+        $otherSiblings = $siblings->reject(fn ($item) => $item->id === $nodeId);
+
+        $newOrder = [];
+
+        if ($position === 'inside' || ! $referenceId) {
+            $newOrder = $otherSiblings->values()->all();
+            $newOrder[] = $movedNode;
+        } else {
+            $referenceItem = $otherSiblings->firstWhere('id', $referenceId);
+
+            if (! $referenceItem) {
+                $newOrder = $otherSiblings->values()->all();
+                $newOrder[] = $movedNode;
+            } else {
+                foreach ($otherSiblings as $sibling) {
+                    if ($position === 'before' && $sibling->id === $referenceId) {
+                        $newOrder[] = $movedNode;
+                    }
+
+                    $newOrder[] = $sibling;
+
+                    if ($position === 'after' && $sibling->id === $referenceId) {
+                        $newOrder[] = $movedNode;
+                    }
+                }
+            }
+        }
+
+        $order = 1;
+        foreach ($newOrder as $item) {
+            if ($item->order !== $order) {
+                $item->order = $order;
+                $item->save();
+            }
+            $order++;
         }
     }
 

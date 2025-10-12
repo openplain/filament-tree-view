@@ -14,6 +14,9 @@ return [
         'cancel' => 'Cancel',
         'expand_all' => 'Expand all',
         'collapse_all' => 'Collapse all',
+        'drag' => 'Drag to reorder',
+        'expand' => 'Expand',
+        'collapse' => 'Collapse',
     ],
 
 ];

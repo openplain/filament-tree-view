@@ -200,7 +200,8 @@ trait InteractsWithTree
 
     public function toggleExpanded(string $recordId): void
     {
-        $this->treeState[$recordId] = ! ($this->treeState[$recordId] ?? false);
+        $defaultExpanded = $this->getTree()->isDefaultExpanded();
+        $this->treeState[$recordId] = ! ($this->treeState[$recordId] ?? $defaultExpanded);
     }
 
     public function isExpanded(string $recordId): bool

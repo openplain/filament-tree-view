@@ -27,10 +27,10 @@
     data-depth="{{ $depth }}"
     data-item-title="{{ $record->name ?? $record->title ?? 'Item '.$record->id }}"
 >
-    {{-- Item Content --}}
-    <div class="filament-tree-node-content fi-ta-row transition duration-75 hover:bg-gray-50 dark:hover:bg-white/5">
+    {{-- Item Content - Using Filament table row classes --}}
+    <div class="filament-tree-node-content fi-ta-row">
         <div class="fi-ta-cell p-0 first-of-type:ps-3 last-of-type:pe-3 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
-            <div class="flex items-center gap-3 px-3 py-3">
+            <div class="flex items-center gap-3 px-3 py-4">
 
                 {{-- Drag Handle --}}
                 <button

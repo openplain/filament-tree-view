@@ -4,6 +4,30 @@
             $records = $this->getTreeRecords();
         @endphp
 
+        {{-- Inline script to prevent flash of wrong expand state --}}
+        @if ($tree->isCollapsible())
+            <script>
+                (function() {
+                    const savedState = localStorage.getItem('filament_tree_expand_state');
+                    const defaultExpanded = {{ $tree->isDefaultExpanded() ? 'true' : 'false' }};
+                    const shouldExpand = savedState !== null ? savedState === 'expanded' : defaultExpanded;
+
+                    // Apply state as soon as DOM is ready
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', applyState);
+                    } else {
+                        applyState();
+                    }
+
+                    function applyState() {
+                        document.querySelectorAll('.filament-tree-children').forEach(container => {
+                            container.style.display = shouldExpand ? 'block' : 'none';
+                        });
+                    }
+                })();
+            </script>
+        @endif
+
         @if (count($records) > 0)
             {{-- Header Bar --}}
             <div class="flex items-center justify-between gap-3 mb-6">
@@ -135,8 +159,24 @@
         Livewire.hook('commit', ({ component, respond }) => {
             respond(() => {
                 setTimeout(() => {
-                    initTree();
-                }, 100);
+                    // In batch save mode, only reinit if we don't have unsaved changes
+                    // Otherwise, reinitializing would wipe out our optimistic DOM updates
+                    if (isBatchSave && window.currentTreeInstance?.hasUnsavedChanges) {
+                        // Just reinit event handlers, don't destroy and recreate
+                        if (window.currentTreeInstance?.needsReinit) {
+                            window.currentTreeInstance.reinit();
+                            window.currentTreeInstance.needsReinit = false;
+                        }
+                    } else {
+                        // Normal mode or no unsaved changes: full reinit
+                        initTree();
+
+                        // Apply expand/collapse state from localStorage immediately after DOM update
+                        if (isCollapsible && typeof applyInitialExpandState === 'function') {
+                            applyInitialExpandState();
+                        }
+                    }
+                }, 0);
             });
         });
 
@@ -180,7 +220,8 @@
                 });
             }
 
-            setTimeout(applyInitialExpandState, 100);
+            // Apply immediately on first load to prevent flash
+            applyInitialExpandState();
         }
 
         if (isBatchSave) {

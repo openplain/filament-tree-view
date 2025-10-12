@@ -246,11 +246,24 @@ export default class FilamentTree {
                     }
 
                     if (this.options.enableBatchSave) {
+                        // Batch save mode: track changes and update DOM optimistically
                         this.pendingMoves.push(moveData);
                         this.hasUnsavedChanges = true;
                         this.updateButtonStates();
+
+                        // Perform optimistic DOM update
+                        this.applyMoveToDOM(source.element, item, instruction.operation, moveData);
+
+                        // Mark that we need reinit - will be handled by monitor after all handlers complete
+                        this.needsReinit = true;
                     } else if (this.options.livewireComponent && moveData) {
-                        this.options.livewireComponent.$wire.reorderTree([moveData]);
+                        // Immediate save mode: save to server immediately
+                        // Also apply optimistic DOM update for instant feedback
+                        this.applyMoveToDOM(source.element, item, instruction.operation, moveData);
+                        this.needsReinit = true;
+
+                        // Call Livewire to save
+                        this.options.livewireComponent.call('reorderTree', [moveData]);
                     }
                 },
             });
@@ -272,14 +285,16 @@ export default class FilamentTree {
             getData: () => ({ type: 'drop-at-end', depth: 0 }),
             onDragEnter: () => {
                 const rect = dropAtEnd.getBoundingClientRect();
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim();
+
                 this.dropIndicator.style.display = 'block';
                 this.dropIndicator.style.left = `${rect.left}px`;
                 this.dropIndicator.style.width = `${rect.width}px`;
                 this.dropIndicator.style.top = `${rect.top}px`;
                 this.dropIndicator.style.height = '3px';
-                this.dropIndicator.style.backgroundColor = 'rgb(var(--primary-600))';
+                this.dropIndicator.style.backgroundColor = primaryColor;
                 this.dropIndicator.style.borderRadius = '3px';
-                this.dropIndicator.style.boxShadow = '0 0 8px rgba(var(--primary-600), 1)';
+                this.dropIndicator.style.boxShadow = `0 0 8px ${primaryColor}`;
             },
             onDrop: ({ source }) => {
                 this.hideDropIndicator();
@@ -297,11 +312,28 @@ export default class FilamentTree {
                 };
 
                 if (this.options.enableBatchSave) {
+                    // Batch save mode: track changes and update DOM optimistically
                     this.pendingMoves.push(moveData);
                     this.hasUnsavedChanges = true;
                     this.updateButtonStates();
+
+                    // Perform optimistic DOM update
+                    if (lastRootItem) {
+                        this.applyMoveToDOM(source.element, lastRootItem, 'reorder-after', moveData);
+                    }
+
+                    // Mark that we need reinit
+                    this.needsReinit = true;
                 } else if (this.options.livewireComponent) {
-                    this.options.livewireComponent.$wire.reorderTree([moveData]);
+                    // Immediate save mode: save to server immediately
+                    // Also apply optimistic DOM update for instant feedback
+                    if (lastRootItem) {
+                        this.applyMoveToDOM(source.element, lastRootItem, 'reorder-after', moveData);
+                    }
+                    this.needsReinit = true;
+
+                    // Call Livewire to save
+                    this.options.livewireComponent.call('reorderTree', [moveData]);
                 }
             },
         });
@@ -319,7 +351,12 @@ export default class FilamentTree {
         if (!content) return;
 
         const rect = content.getBoundingClientRect();
-        const color = blocked ? 'rgb(var(--danger-600))' : 'rgb(var(--primary-600))';
+
+        // Get computed color values from CSS variables
+        const styles = getComputedStyle(document.documentElement);
+        const primaryColor = styles.getPropertyValue('--primary-600').trim();
+        const dangerColor = styles.getPropertyValue('--danger-600').trim();
+        const color = blocked ? dangerColor : primaryColor;
 
         this.dropIndicator.style.display = 'block';
 
@@ -390,23 +427,98 @@ export default class FilamentTree {
      * Apply move to DOM (optimistic update)
      */
     applyMoveToDOM(sourceElement, targetElement, operation, moveData) {
-        // Simplified DOM update - full implementation would mirror reference
-        // For now, rely on Livewire to refresh
+        if (!sourceElement || !targetElement) return;
+
+        if (operation === 'combine') {
+            // Move as child of target
+            let childrenContainer = targetElement.querySelector(':scope > .filament-tree-children');
+
+            // If no children container exists, create one
+            if (!childrenContainer) {
+                childrenContainer = document.createElement('div');
+                childrenContainer.className = 'filament-tree-children';
+                childrenContainer.style.marginLeft = '2rem';
+                childrenContainer.style.display = 'block'; // Make sure it's visible
+                targetElement.appendChild(childrenContainer);
+            }
+
+            // Append source element as child
+            childrenContainer.appendChild(sourceElement);
+
+            // Update depth recursively
+            const targetDepth = parseInt(targetElement.dataset.depth) || 0;
+            this.updateItemDepth(sourceElement, targetDepth + 1);
+            sourceElement.dataset.parentId = moveData.newParentId;
+
+        } else if (operation === 'reorder-before') {
+            // Insert before target element
+            targetElement.parentElement.insertBefore(sourceElement, targetElement);
+
+            // Update depth to match target's level
+            const targetDepth = parseInt(targetElement.dataset.depth) || 0;
+            this.updateItemDepth(sourceElement, targetDepth);
+            sourceElement.dataset.parentId = targetElement.dataset.parentId || '-1';
+
+        } else if (operation === 'reorder-after') {
+            // Insert after target element
+            if (targetElement.nextSibling) {
+                targetElement.parentElement.insertBefore(sourceElement, targetElement.nextSibling);
+            } else {
+                targetElement.parentElement.appendChild(sourceElement);
+            }
+
+            // Update depth to match target's level
+            const targetDepth = parseInt(targetElement.dataset.depth) || 0;
+            this.updateItemDepth(sourceElement, targetDepth);
+            sourceElement.dataset.parentId = targetElement.dataset.parentId || '-1';
+        }
+
+        // Clean up empty containers
+        this.cleanupEmptyContainers();
+    }
+
+    /**
+     * Update item depth recursively
+     */
+    updateItemDepth(item, newDepth) {
+        item.dataset.depth = newDepth;
+
+        // Update all children recursively
+        const childrenContainer = item.querySelector(':scope > .filament-tree-children');
+        if (childrenContainer) {
+            const children = childrenContainer.querySelectorAll(':scope > [data-tree-item]');
+            children.forEach(child => {
+                this.updateItemDepth(child, newDepth + 1);
+            });
+        }
+    }
+
+    /**
+     * Clean up empty tree-children containers
+     */
+    cleanupEmptyContainers() {
+        const allChildrenContainers = document.querySelectorAll('.filament-tree-children');
+        allChildrenContainers.forEach(container => {
+            const hasChildren = container.querySelector('[data-tree-item]') !== null;
+            if (!hasChildren) {
+                container.remove();
+            }
+        });
     }
 
     /**
      * Reinitialize after DOM updates
      */
     reinit() {
-        const monitorCleanup = this.cleanupFunctions[this.cleanupFunctions.length - 1];
-        this.cleanupFunctions.forEach((cleanup, index) => {
-            if (index < this.cleanupFunctions.length - 1) cleanup();
-        });
-        this.cleanupFunctions = [monitorCleanup];
+        // Clean up all event listeners
+        this.cleanupFunctions.forEach(cleanup => cleanup());
+        this.cleanupFunctions = [];
 
+        // Re-register everything with fresh DOM
         this.registerDraggables();
         this.registerDropTargets();
         this.registerDropAtEnd();
+        this.registerMonitor();
     }
 
     /**
@@ -418,7 +530,9 @@ export default class FilamentTree {
         }
 
         if (this.options.livewireComponent) {
-            this.options.livewireComponent.$wire.reorderTree(this.pendingMoves);
+            // Use call() for Livewire 3 compatibility
+            // livewireComponent IS $wire, so call directly
+            this.options.livewireComponent.call('reorderTree', this.pendingMoves);
             this.pendingMoves = [];
             this.hasUnsavedChanges = false;
             this.updateButtonStates();
@@ -439,7 +553,7 @@ export default class FilamentTree {
 
         // Reload the page to reset tree state
         if (this.options.livewireComponent) {
-            this.options.livewireComponent.$wire.$refresh();
+            this.options.livewireComponent.$refresh();
         }
     }
 

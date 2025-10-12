@@ -30,13 +30,12 @@
     {{-- Item Content - Using Filament table row classes --}}
     <div class="filament-tree-node-content fi-ta-row">
         <div class="fi-ta-cell p-0">
-            <div class="flex items-center gap-3 pr-3 py-3">
-
-                {{-- Drag Handle --}}
+            <div class="flex items-center mt-1 mb-1 ml-2">
+            {{-- Drag Handle --}}
                 <button
                     type="button"
                     data-drag-handle
-                    class="filament-tree-drag-handle cursor-move flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
+                    class="filament-tree-drag-handle p-2 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-opacity"
                     title="Drag to reorder"
                 >
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -44,25 +43,24 @@
                     </svg>
                 </button>
 
-                {{-- Collapse/Expand Toggle --}}
-                @if ($hasChildren)
-                    <button
-                        type="button"
-                        class="filament-tree-collapse-btn flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
-                        title="Toggle"
-                        wire:click="toggleExpanded('{{ $record->id }}')"
-                    >
-                        <svg class="w-4 h-4 transition-transform {{ $livewire->isExpanded($record->id) ? 'rotate-0' : '-rotate-90' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </button>
-                @else
-                    {{-- Spacer for alignment when no children --}}
-                    <div class="w-4 flex-shrink-0"></div>
-                @endif
+                {{-- Collapse/Expand Toggle - Fixed width for alignment --}}
+                <div class="flex-shrink-0" style="width: 2rem;">
+                    @if ($hasChildren)
+                        <button
+                            type="button"
+                            class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                            title="Toggle"
+                            wire:click="toggleExpanded('{{ $record->id }}')"
+                        >
+                            <svg class="w-4 h-4 transition-transform {{ $livewire->isExpanded($record->id) ? 'rotate-0' : '-rotate-90' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                    @endif
+                </div>
 
                 {{-- Item Title/Content --}}
-                <div class="filament-tree-node-title flex-1 min-w-0">
+                <div class="filament-tree-node-title flex-1 min-w-0 ml-2">
                     <div class="text-sm font-medium text-gray-950 dark:text-white truncate">
                         {{ $record->name ?? $record->title ?? 'Item '.$record->id }}
                     </div>

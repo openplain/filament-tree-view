@@ -1,6 +1,6 @@
 # Filament Tree View Plugin - Development Progress
 
-**Current Status**: Phase 1 Complete ✅ | Ready for Phase 2 (Research)
+**Current Status**: Phase 3 Complete ✅ | Ready for Phase 4 (Frontend & Drag-Drop)
 
 **Working Directory**: `~/Plugins/Openplain/`
 
@@ -49,49 +49,86 @@
 
 ---
 
-## Phase 2: Research Filament Source Code 📍 NEXT
+## Phase 2: Research Filament Source Code ✅ COMPLETE
 
-**CRITICAL**: Do NOT write plugin code until research is complete!
+### Findings Documented
 
-### Files to Study (In Order)
+Created: `~/Plugins/Openplain/filament-tree-view/RESEARCH.md`
 
-**Location**: `~/Plugins/Openplain/demo-app/vendor/filament/`
+**Key Discoveries**:
+- ✅ Builder pattern with trait composition
+- ✅ Static factory pattern (`::make()`)
+- ✅ Livewire integration via `InteractsWithTable` trait
+- ✅ Action mounting and execution flow
+- ✅ Service provider patterns
+- ✅ Asset registration
+- ✅ Configuration flow: Page → makeTable() → Resource::table() → configure
 
-1. **tables/src/Table.php**
-   - Study: Builder pattern, method chaining, config storage
-   - Questions: How does Table store configuration? How are methods chained?
+---
 
-2. **tables/src/Concerns/InteractsWithTable.php**
-   - Study: How Table integrates with Livewire
-   - Questions: How is config passed to Livewire components?
+## Phase 3: Build Core Architecture ✅ COMPLETE
 
-3. **actions/src/Action.php**
-   - Study: Action system architecture
-   - Questions: How are actions defined and stored?
+### What We Built
 
-4. **actions/src/Concerns/InteractsWithActions.php**
-   - Study: Action mounting and execution flow
-   - Questions: How does Filament mount actions? How are modals triggered?
+**Core Classes** ✅
+- `src/Tree.php` - Main builder class (mirrors Filament's Table)
+- `src/Contracts/HasTree.php` - Interface for Livewire components
+- `src/Concerns/InteractsWithTree.php` - Livewire trait
+- `src/Concerns/HasTreeStructure.php` - Model trait
+- `src/Resources/Pages/TreePage.php` - Base page class
 
-5. **filament/src/Resources/Resource.php**
-   - Study: Resource structure and patterns
-   - Questions: How do resources integrate with pages?
+**Tree Concerns** ✅ (11 traits)
+- `Tree/Concerns/BelongsToLivewire.php`
+- `Tree/Concerns/CanCollapse.php`
+- `Tree/Concerns/CanControlDepth.php`
+- `Tree/Concerns/CanReorderRecords.php`
+- `Tree/Concerns/HasActions.php`
+- `Tree/Concerns/HasBulkActions.php`
+- `Tree/Concerns/HasContent.php`
+- `Tree/Concerns/HasEmptyState.php`
+- `Tree/Concerns/HasHeaderActions.php`
+- `Tree/Concerns/HasQuery.php`
+- `Tree/Concerns/HasRecordAction.php`
+- `Tree/Concerns/HasRecordUrl.php`
+- `Tree/Concerns/HasRecords.php`
 
-6. **filament/src/Resources/Pages/ListRecords.php**
-   - Study: List page pattern
-   - Questions: How does ListRecords integrate with Table?
+**Views & Translations** ✅
+- `resources/views/index.blade.php`
+- `resources/views/pages/tree-page.blade.php`
+- `resources/lang/en/tree.php`
 
-### Research Output
+**Service Provider** ✅
+- Updated to register views and translations
 
-Create: `~/Plugins/Openplain/filament-tree-view/RESEARCH.md`
+### Architecture Highlights
 
-Document:
-- ✅ How Filament passes config to Livewire components
-- ✅ How actions are mounted and executed
-- ✅ How forms work inside action modals
-- ✅ Service provider registration patterns
-- ✅ Asset registration (CSS/JS)
-- ✅ How Filament handles `wire:ignore` scenarios
+**API Parity Achieved**:
+```php
+// Works exactly like Filament Table
+public static function tree(Tree $tree): Tree
+{
+    return $tree
+        ->maxDepth(6)
+        ->enableCollapse()
+        ->defaultExpanded(false)
+        ->actions([...])
+        ->bulkActions([...])
+        ->headerActions([...]);
+}
+```
+
+**Model Trait**:
+```php
+use HasTreeStructure; // Wraps Laravel Adjacency List
+```
+
+**Page Implementation**:
+```php
+class TreeCategories extends TreePage
+{
+    protected static string $resource = CategoryResource::class;
+}
+```
 
 ---
 
@@ -142,32 +179,76 @@ public static function tree(Tree $tree): Tree
 
 ---
 
-## Next Commands to Run
+## Phase 4: Frontend & Drag-Drop Integration 📍 NEXT
 
-When you're ready to start Phase 2:
+**Goal**: Port working drag-drop implementation from `api.ritograk.fo`
 
-```bash
-# 1. Navigate to workspace
-cd ~/Plugins/Openplain/
+### Tasks
 
-# 2. Check plugin Git status
-cd filament-tree-view && git status && git log --oneline
+1. **Copy reference implementation files**:
+   - `/app/Livewire/TreeItemsTree.php` → Study Livewire structure
+   - `/resources/views/livewire/tree-items-tree.blade.php` → Tree rendering
+   - `/resources/js/components/simple-tree.js` → Pragmatic Drag & Drop
+   - `/app/Models/TreeItem.php` → Model methods
 
-# 3. Start researching Filament source
-# Read: demo-app/vendor/filament/tables/src/Table.php
-```
+2. **Create tree rendering components**:
+   - Tree node Blade component
+   - Tree container with drag-drop zones
+   - Collapse/expand buttons
+   - Action buttons per node
+
+3. **Integrate Pragmatic Drag & Drop**:
+   - Install via NPM: `@atlaskit/pragmatic-drag-and-drop`
+   - Create JS module for tree drag-drop
+   - Wire up Livewire events
+   - Handle reordering and nesting
+
+4. **Add CSS styling**:
+   - Tree indentation
+   - Drag indicators
+   - Drop zones
+   - Dark mode support
+
+5. **Test drag-drop functionality**:
+   - Reorder within same level
+   - Nest items (change parent)
+   - Prevent circular references
+   - Respect maxDepth setting
+
+### Reference Implementation Status
+- ✅ 100% reliable at all 6 levels
+- ✅ Pragmatic Drag & Drop (4.7kB)
+- ✅ Laravel Adjacency List integration
+- ✅ Batch save mode working
 
 ---
 
-## Todo List for New Session
+## Phase 5: Artisan Commands & Documentation
 
-- [ ] Research Filament source code (Table.php, InteractsWithTable.php, etc.)
-- [ ] Document findings in RESEARCH.md
-- [ ] Create Tree builder class (Phase 3)
-- [ ] Create TreePage base class (Phase 3)
-- [ ] Port working code from api.ritograk.fo (Phase 3)
-- [ ] Integrate Actions system (Phase 4)
-- [ ] Create Artisan commands (Phase 5)
+### Tasks
+
+- [ ] Create `make:filament-tree-resource` command
+- [ ] Update README with full usage examples
+- [ ] Add code examples to documentation
+- [ ] Create migration stubs
+- [ ] Test full workflow from scratch
+
+---
+
+## Next Commands to Run
+
+When you're ready to start Phase 4:
+
+```bash
+# 1. Check current status
+cd ~/Plugins/Openplain/filament-tree-view && git status
+
+# 2. Commit Phase 3 work
+git add . && git commit -m "Phase 3: Core architecture complete"
+
+# 3. View reference implementation
+cd ~/Sites/api.ritograk.fo && ls -la app/Livewire/TreeItemsTree.php
+```
 
 ---
 
@@ -183,6 +264,5 @@ When starting new session, read these:
 
 ---
 
-**Last Updated**: 2025-10-12 (Phase 1 completion)
-**Git Commit**: bc0786e
-**Next Phase**: Research Filament Source Code
+**Last Updated**: 2025-10-12 (Phase 3 completion)
+**Next Phase**: Frontend & Drag-Drop Integration

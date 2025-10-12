@@ -11,6 +11,9 @@ class FilamentTreeViewServiceProvider extends ServiceProvider
         // Register views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-tree-view');
 
+        // Register translations
+        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'filament-tree-view');
+
         // Publish config
         $this->publishes([
             __DIR__ . '/../config/filament-tree-view.php' => config_path('filament-tree-view.php'),
@@ -20,6 +23,11 @@ class FilamentTreeViewServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views' => resource_path('views/vendor/filament-tree-view'),
         ], 'filament-tree-view-views');
+
+        // Publish translations
+        $this->publishes([
+            __DIR__ . '/../resources/lang' => lang_path('vendor/filament-tree-view'),
+        ], 'filament-tree-view-translations');
 
         // Register commands if running in console
         if ($this->app->runningInConsole()) {

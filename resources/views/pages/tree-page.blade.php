@@ -103,6 +103,9 @@
     @script
     <script>
         let treeInstance = null;
+        const isCollapsible = {{ $tree->isCollapsible() ? 'true' : 'false' }};
+        const isBatchSave = {{ $tree->shouldBatchSave() ? 'true' : 'false' }};
+        const defaultExpanded = {{ $tree->isDefaultExpanded() ? 'true' : 'false' }};
 
         function initTree() {
             if (treeInstance) {
@@ -113,24 +116,22 @@
                 return;
             }
 
-            // Use $wire to get the current component
             const component = $wire;
 
             if (component) {
                 treeInstance = new window.FilamentTree(null, {
                     maxDepth: {{ $tree->getMaxDepth() }},
                     livewireComponent: component,
-                    enableBatchSave: {{ $tree->shouldBatchSave() ? 'true' : 'false' }},
+                    enableBatchSave: isBatchSave,
                 });
 
                 treeInstance.init();
+                window.currentTreeInstance = treeInstance;
             }
         }
 
-        // Initialize tree after Livewire is ready
         initTree();
 
-        // Reinitialize after Livewire updates
         Livewire.hook('commit', ({ component, respond }) => {
             respond(() => {
                 setTimeout(() => {
@@ -139,117 +140,69 @@
             });
         });
 
-        // ========================================
-        // Expand/Collapse All Functionality
-        // ========================================
+        if (isCollapsible) {
+            const expandAllBtn = document.getElementById('tree-expand-all');
+            const collapseAllBtn = document.getElementById('tree-collapse-all');
 
-        @if ($tree->isCollapsible())
-        const expandAllBtn = document.getElementById('tree-expand-all');
-        const collapseAllBtn = document.getElementById('tree-collapse-all');
+            if (expandAllBtn) {
+                expandAllBtn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-tree-item]').forEach(item => {
+                        const childrenContainer = item.querySelector('.filament-tree-children');
+                        if (childrenContainer) {
+                            childrenContainer.style.display = 'block';
+                        }
+                    });
+                    localStorage.setItem('filament_tree_expand_state', 'expanded');
+                });
+            }
 
-        if (expandAllBtn) {
-            expandAllBtn.addEventListener('click', () => {
-                // Expand all nodes
-                document.querySelectorAll('.tree-item').forEach(item => {
+            if (collapseAllBtn) {
+                collapseAllBtn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-tree-item]').forEach(item => {
+                        const childrenContainer = item.querySelector('.filament-tree-children');
+                        if (childrenContainer) {
+                            childrenContainer.style.display = 'none';
+                        }
+                    });
+                    localStorage.setItem('filament_tree_expand_state', 'collapsed');
+                });
+            }
+
+            function applyInitialExpandState() {
+                const savedState = localStorage.getItem('filament_tree_expand_state');
+                const shouldExpand = savedState !== null ? savedState === 'expanded' : defaultExpanded;
+
+                document.querySelectorAll('[data-tree-item]').forEach(item => {
                     const childrenContainer = item.querySelector('.filament-tree-children');
                     if (childrenContainer) {
-                        childrenContainer.style.display = 'block';
+                        childrenContainer.style.display = shouldExpand ? 'block' : 'none';
                     }
                 });
+            }
 
-                // Update all collapse buttons to expanded state
-                document.querySelectorAll('.tree-collapse-btn').forEach(btn => {
-                    const svg = btn.querySelector('svg');
-                    if (svg) {
-                        svg.classList.remove('-rotate-90');
-                        svg.classList.add('rotate-0');
+            setTimeout(applyInitialExpandState, 100);
+        }
+
+        if (isBatchSave) {
+            const saveBtn = document.getElementById('tree-save-btn');
+            const cancelBtn = document.getElementById('tree-cancel-btn');
+
+            if (saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                    if (window.currentTreeInstance) {
+                        window.currentTreeInstance.saveChanges();
                     }
                 });
+            }
 
-                // Save preference to localStorage
-                localStorage.setItem('filament_tree_expand_state', 'expanded');
-            });
-        }
-
-        if (collapseAllBtn) {
-            collapseAllBtn.addEventListener('click', () => {
-                // Collapse all nodes
-                document.querySelectorAll('.tree-item').forEach(item => {
-                    const childrenContainer = item.querySelector('.filament-tree-children');
-                    if (childrenContainer) {
-                        childrenContainer.style.display = 'none';
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    if (window.currentTreeInstance) {
+                        window.currentTreeInstance.cancelChanges();
                     }
                 });
-
-                // Update all collapse buttons to collapsed state
-                document.querySelectorAll('.tree-collapse-btn').forEach(btn => {
-                    const svg = btn.querySelector('svg');
-                    if (svg) {
-                        svg.classList.add('-rotate-90');
-                        svg.classList.remove('rotate-0');
-                    }
-                });
-
-                // Save preference to localStorage
-                localStorage.setItem('filament_tree_expand_state', 'collapsed');
-            });
+            }
         }
-
-        // Apply initial expand/collapse state from localStorage or default
-        function applyInitialExpandState() {
-            const savedState = localStorage.getItem('filament_tree_expand_state');
-            const defaultExpanded = {{ $tree->isDefaultExpanded() ? 'true' : 'false' }};
-            const shouldExpand = savedState !== null ? savedState === 'expanded' : defaultExpanded;
-
-            document.querySelectorAll('.tree-item').forEach(item => {
-                const childrenContainer = item.querySelector('.filament-tree-children');
-                if (childrenContainer) {
-                    childrenContainer.style.display = shouldExpand ? 'block' : 'none';
-                }
-            });
-
-            document.querySelectorAll('.tree-collapse-btn').forEach(btn => {
-                const svg = btn.querySelector('svg');
-                if (svg) {
-                    if (shouldExpand) {
-                        svg.classList.remove('-rotate-90');
-                        svg.classList.add('rotate-0');
-                    } else {
-                        svg.classList.add('-rotate-90');
-                        svg.classList.remove('rotate-0');
-                    }
-                }
-            });
-        }
-
-        // Apply initial state after a short delay to ensure DOM is ready
-        setTimeout(applyInitialExpandState, 50);
-        @endif
-
-        // ========================================
-        // Save/Cancel Button Handlers
-        // ========================================
-
-        @if ($tree->shouldBatchSave())
-        const saveBtn = document.getElementById('tree-save-btn');
-        const cancelBtn = document.getElementById('tree-cancel-btn');
-
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                if (treeInstance) {
-                    treeInstance.saveChanges();
-                }
-            });
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                if (treeInstance) {
-                    treeInstance.cancelChanges();
-                }
-            });
-        }
-        @endif
     </script>
     @endscript
 </x-filament-panels::page>

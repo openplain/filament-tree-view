@@ -301,6 +301,7 @@ export default class FilamentTree {
                     this.pendingMoves.push(moveData);
                     this.hasUnsavedChanges = true;
                     this.needsReinit = true;
+                    this.updateButtonStates();
                 } else if (this.options.livewireComponent) {
                     this.options.livewireComponent.$wire.reorderTree([moveData]);
                 }
@@ -408,6 +409,67 @@ export default class FilamentTree {
         this.registerDraggables();
         this.registerDropTargets();
         this.registerDropAtEnd();
+    }
+
+    /**
+     * Save all pending moves to backend
+     */
+    saveChanges() {
+        if (!this.options.enableBatchSave || this.pendingMoves.length === 0) {
+            return;
+        }
+
+        if (this.options.livewireComponent) {
+            this.options.livewireComponent.$wire.reorderTree(this.pendingMoves);
+            this.pendingMoves = [];
+            this.hasUnsavedChanges = false;
+            this.updateButtonStates();
+        }
+    }
+
+    /**
+     * Cancel all pending moves and reload from server
+     */
+    cancelChanges() {
+        if (!this.options.enableBatchSave) {
+            return;
+        }
+
+        this.pendingMoves = [];
+        this.hasUnsavedChanges = false;
+        this.updateButtonStates();
+
+        // Reload the page to reset tree state
+        if (this.options.livewireComponent) {
+            this.options.livewireComponent.$wire.$refresh();
+        }
+    }
+
+    /**
+     * Update Save/Cancel button states based on pending changes
+     */
+    updateButtonStates() {
+        if (!this.options.enableBatchSave) {
+            return;
+        }
+
+        const saveBtn = document.getElementById('tree-save-btn');
+        const cancelBtn = document.getElementById('tree-cancel-btn');
+        const indicator = document.getElementById('tree-changes-indicator');
+
+        if (saveBtn && cancelBtn && indicator) {
+            if (this.hasUnsavedChanges) {
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                indicator.classList.remove('hidden');
+                indicator.classList.add('flex');
+            } else {
+                saveBtn.disabled = true;
+                cancelBtn.disabled = true;
+                indicator.classList.add('hidden');
+                indicator.classList.remove('flex');
+            }
+        }
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace Openplain\FilamentTreeView\Concerns;
 
-use Filament\Actions\Concerns\HasActions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -10,7 +9,6 @@ use Openplain\FilamentTreeView\Tree;
 
 trait InteractsWithTree
 {
-    use HasActions;
 
     protected Tree $tree;
 
@@ -52,16 +50,36 @@ trait InteractsWithTree
         return $this->getTree()->getQuery();
     }
 
-    public function getTreeRecords(): Collection
+    public function getTreeRecords(): array
     {
-        $query = $this->getTreeQuery();
+        $modelClass = $this->getTree()->getQuery()->getModel()::class;
 
-        // Get root nodes with their descendants using Laravel Adjacency List
-        return $query
-            ->whereNull('parent_id')
-            ->withRecursiveQueryDepth()
-            ->get()
-            ->toTree();
+        // Get all records ordered
+        $nodes = $modelClass::query()
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get();
+
+        // Build nested tree structure
+        return $this->buildNestedArray($nodes);
+    }
+
+    protected function buildNestedArray($nodes, $parentId = null): array
+    {
+        $branch = [];
+
+        foreach ($nodes as $node) {
+            if ($node->parent_id == $parentId || ($node->parent_id === null && $parentId === null)) {
+                $children = $this->buildNestedArray($nodes, $node->id);
+                // Convert to array and add children
+                $nodeData = $node->toArray();
+                $nodeData['children'] = $children;
+                // Convert back to object for consistent access
+                $branch[] = (object) $nodeData;
+            }
+        }
+
+        return $branch;
     }
 
     public function reorderTree(array $moves): void

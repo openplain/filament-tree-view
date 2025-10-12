@@ -23,7 +23,7 @@ class TreePage extends Page implements HasTree
         makeTree as makeBaseTree;
     }
 
-    protected static string $view = 'filament-tree-view::pages.tree-page';
+    protected string $view = 'filament-tree-view::pages.tree-page';
 
     public function mount(): void
     {
@@ -106,12 +106,12 @@ class TreePage extends Page implements HasTree
         return static::getResource()::getEloquentQuery();
     }
 
-    protected function getModelLabel(): ?string
+    public function getModelLabel(): ?string
     {
         return static::getResource()::getModelLabel();
     }
 
-    protected function getPluralModelLabel(): ?string
+    public function getPluralModelLabel(): ?string
     {
         return static::getResource()::getPluralModelLabel();
     }
@@ -129,8 +129,16 @@ class TreePage extends Page implements HasTree
      */
     public function getWidgetData(): array
     {
-        return [
-            'record' => $this->getRecord(),
-        ];
+        return [];
+    }
+
+    public function getRecord(): ?Model
+    {
+        return null;
+    }
+
+    public function getParentRecord(): ?Model
+    {
+        return null;
     }
 }

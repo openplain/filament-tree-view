@@ -250,6 +250,7 @@ export default class FilamentTree {
                         this.hasUnsavedChanges = true;
                         this.applyMoveToDOM(source.element, item, instruction.operation, moveData);
                         this.needsReinit = true;
+                        this.updateButtonStates();
                     } else if (this.options.livewireComponent && moveData) {
                         this.options.livewireComponent.$wire.reorderTree([moveData]);
                     }

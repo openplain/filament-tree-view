@@ -64,12 +64,39 @@ trait InteractsWithTree
         return $this->buildNestedArray($nodes);
     }
 
+    /**
+     * Get the value representing root nodes from the model.
+     */
+    protected function getRootParentValue(): mixed
+    {
+        $model = $this->getTree()->getQuery()->getModel();
+
+        return $model->getParentKeyDefaultValue();
+    }
+
+    /**
+     * Check if a value represents a root node.
+     */
+    protected function isRootValue(mixed $value): bool
+    {
+        $rootValue = $this->getRootParentValue();
+
+        // Loose comparison to handle -1 vs "-1" etc
+        return $value == $rootValue;
+    }
+
     protected function buildNestedArray($nodes, $parentId = null): array
     {
         $branch = [];
+        $rootValue = $this->getRootParentValue();
 
         foreach ($nodes as $node) {
-            if ($node->parent_id == $parentId || ($node->parent_id === null && $parentId === null)) {
+            // Check if this node belongs to the requested parent level
+            $isMatch = $parentId === null
+                ? $this->isRootValue($node->parent_id)
+                : $node->parent_id == $parentId;
+
+            if ($isMatch) {
                 $children = $this->buildNestedArray($nodes, $node->id);
                 // Keep the model instance and add children as a relation
                 $node->setRelation('children', collect($children));
@@ -111,7 +138,9 @@ trait InteractsWithTree
         $oldParentId = $node->parent_id;
 
         // Move to new parent
-        $node->parent_id = $newParentId === -1 ? null : $newParentId;
+        // Frontend sends -1 for root, convert to model's root value
+        $rootValue = $this->getRootParentValue();
+        $node->parent_id = $newParentId === -1 ? $rootValue : $newParentId;
         $node->save();
 
         // Reorder siblings in old parent
@@ -126,11 +155,19 @@ trait InteractsWithTree
     protected function reorderSiblings(?int $parentId): void
     {
         $modelClass = $this->getTree()->getQuery()->getModel()::class;
+        $model = new $modelClass;
+        $rootValue = $model->getParentKeyDefaultValue();
+        $parentKeyName = $model->getParentKeyName();
 
-        if ($parentId === -1 || $parentId === null) {
-            $siblings = $modelClass::whereNull('parent_id');
+        if ($parentId === -1 || $parentId === null || $this->isRootValue($parentId)) {
+            // Query for root nodes
+            if ($rootValue === null) {
+                $siblings = $modelClass::whereNull($parentKeyName);
+            } else {
+                $siblings = $modelClass::where($parentKeyName, $rootValue);
+            }
         } else {
-            $siblings = $modelClass::where('parent_id', $parentId);
+            $siblings = $modelClass::where($parentKeyName, $parentId);
         }
 
         $siblings = $siblings->orderBy('order')->orderBy('id')->get();
@@ -148,11 +185,19 @@ trait InteractsWithTree
     protected function reorderSiblingsWithInsert(int $parentId, int $nodeId, string $position, ?int $referenceId): void
     {
         $modelClass = $this->getTree()->getQuery()->getModel()::class;
+        $model = new $modelClass;
+        $rootValue = $model->getParentKeyDefaultValue();
+        $parentKeyName = $model->getParentKeyName();
 
-        if ($parentId === -1) {
-            $siblings = $modelClass::whereNull('parent_id');
+        if ($parentId === -1 || $this->isRootValue($parentId)) {
+            // Query for root nodes
+            if ($rootValue === null) {
+                $siblings = $modelClass::whereNull($parentKeyName);
+            } else {
+                $siblings = $modelClass::where($parentKeyName, $rootValue);
+            }
         } else {
-            $siblings = $modelClass::where('parent_id', $parentId);
+            $siblings = $modelClass::where($parentKeyName, $parentId);
         }
 
         $siblings = $siblings->orderBy('order')->orderBy('id')->get();

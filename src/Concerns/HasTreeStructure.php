@@ -55,4 +55,17 @@ trait HasTreeStructure
     {
         return $this->qualifyColumn($this->getParentKeyName());
     }
+
+    /**
+     * Get the value used to represent root nodes (nodes without a parent).
+     *
+     * By default, root nodes have parent_id = NULL.
+     * Override this method to use a different value (e.g., -1 or 0) for existing databases.
+     *
+     * @return mixed The value representing "no parent" (null, -1, 0, etc.)
+     */
+    public function getParentKeyDefaultValue(): mixed
+    {
+        return null;
+    }
 }

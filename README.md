@@ -81,7 +81,14 @@ Schema::create('categories', function (Blueprint $table) {
 });
 ```
 
-> **Important:** Root nodes should have `parent_id = NULL` (not 0 or -1)
+> **Important:** By default, root nodes should have `parent_id = NULL`. If your existing system uses a different value (like `-1` or `0`), you can override this in your model:
+>
+> ```php
+> public function getParentKeyDefaultValue(): mixed
+> {
+>     return -1; // or 0, or your custom value
+> }
+> ```
 
 ### 2. Add Trait to Your Model
 
@@ -402,8 +409,39 @@ class Category extends Model
     {
         return 'children';
     }
+
+    /**
+     * Root parent value (default: null)
+     * Override this for existing databases that use -1, 0, or other values
+     * to represent root nodes (nodes without a parent)
+     */
+    public function getParentKeyDefaultValue(): mixed
+    {
+        return null; // or -1, 0, etc.
+    }
 }
 ```
+
+### Working with Existing Databases
+
+If you have an existing database that uses `-1`, `0`, or another value to represent root nodes instead of `NULL`, simply override the `getParentKeyDefaultValue()` method:
+
+```php
+class Category extends Model
+{
+    use HasTreeStructure;
+
+    /**
+     * Existing database uses -1 for root nodes
+     */
+    public function getParentKeyDefaultValue(): mixed
+    {
+        return -1;
+    }
+}
+```
+
+No database migration needed! The package will automatically handle querying and saving with your custom root value.
 
 ## Advanced Usage
 
@@ -612,10 +650,10 @@ If you discover a security vulnerability, please email security@openplain.com. A
 
 ## Credits
 
-- **Openplain** - Package development and maintenance
-- **[Laravel Adjacency List](https://github.com/staudenmeir/laravel-adjacency-list)** by Jonas Staudenmeir - Recursive relationship queries
-- **[Pragmatic Drag & Drop](https://atlassian.design/components/pragmatic-drag-and-drop)** by Atlassian - Accessible drag-and-drop
-- **[Filament](https://filamentphp.com)** by Dan Harrin - The foundation this package builds upon
+Built with these excellent open-source libraries:
+
+- **[Laravel Adjacency List](https://github.com/staudenmeir/laravel-adjacency-list)** by Jonas Staudenmeir - Battle-tested recursive tree queries with thousands of production deployments
+- **[Pragmatic Drag & Drop](https://atlassian.design/components/pragmatic-drag-and-drop)** by Atlassian - Accessible, performant drag-and-drop used in Jira, Trello, and Confluence
 
 ## License
 

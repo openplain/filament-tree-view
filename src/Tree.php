@@ -15,6 +15,7 @@ class Tree extends ViewComponent
     use Tree\Concerns\CanReorderRecords;
     use Tree\Concerns\HasActions;
     use Tree\Concerns\HasBulkActions;
+    use Tree\Concerns\HasFields;
     use Tree\Concerns\HasContent;
     use Tree\Concerns\HasEmptyState;
     use Tree\Concerns\HasHeaderActions;

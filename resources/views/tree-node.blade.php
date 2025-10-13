@@ -54,7 +54,7 @@
     {{-- Item Content - Using Filament table row classes --}}
     <div class="filament-tree-node-content fi-ta-row">
         <div class="fi-ta-cell p-0">
-            <div class="flex items-center mt-1 mb-1 ml-2">
+            <div class="flex items-center mt-1 mb-1 ml-1">
             {{-- Drag Handle --}}
                 <button
                     type="button"
@@ -85,16 +85,59 @@
                 </div>
 
                 {{-- Item Title/Content --}}
-                <div class="filament-tree-node-title flex-1 min-w-0 ml-2">
-                    <div class="text-sm font-medium text-gray-950 dark:text-white truncate">
-                        {{ $record->name ?? $record->title ?? 'Item '.$record->id }}
-                    </div>
-                    @if (isset($record->description) && $record->description)
-                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {{ $record->description }}
+                @if ($tree->hasFields())
+                    {{-- Render custom fields --}}
+                    <div class="filament-tree-node-title flex-1 min-w-0 ml-2 mr-6">
+                        <div class="flex items-center">
+                            @php
+                                $fields = $tree->getVisibleFields($record);
+                                $leftFields = [];
+                                $rightFields = [];
+                                foreach ($fields as $field) {
+                                    if ($field->getAlignment() === \Filament\Support\Enums\Alignment::End) {
+                                        $rightFields[] = $field;
+                                    } else {
+                                        $leftFields[] = $field;
+                                    }
+                                }
+                            @endphp
+
+                            {{-- Left-aligned fields grouped together --}}
+                            @if (count($leftFields) > 0)
+                                <div class="flex items-center gap-4 flex-shrink">
+                                    @foreach ($leftFields as $field)
+                                        <div class="flex-shrink-0 {{ $field->getAlignmentClass() }}">
+                                            {!! $field->render($record) !!}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- Right-aligned fields --}}
+                            @if (count($rightFields) > 0)
+                                <div class="flex items-center gap-4 ml-auto">
+                                    @foreach ($rightFields as $field)
+                                        <div class="{{ $field->getAlignmentClass() }}">
+                                            {!! $field->render($record) !!}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
-                    @endif
-                </div>
+                    </div>
+                @else
+                    {{-- Default display: name/title + description --}}
+                    <div class="filament-tree-node-title flex-1 min-w-0 ml-2">
+                        <div class="text-sm font-medium text-gray-950 dark:text-white truncate">
+                            {{ $record->name ?? $record->title ?? 'Item '.$record->id }}
+                        </div>
+                        @if (isset($record->description) && $record->description)
+                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {{ $record->description }}
+                            </div>
+                        @endif
+                    </div>
+                @endif
 
                 {{-- Record Actions --}}
                 @if (count($recordActions))

@@ -72,9 +72,10 @@
                     @if ($hasChildren)
                         <button
                             type="button"
-                            class="py-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                            class="tree-toggle-btn py-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                             title="Toggle"
-                            wire:click="toggleExpanded('{{ $record->id }}')"
+                            data-record-id="{{ $record->id }}"
+                            onclick="window.toggleTreeNode(this, '{{ $record->id }}')"
                         >
                             <svg class="w-4 h-4 transition-transform {{ $livewire->isExpanded($record->id) ? 'rotate-0' : '-rotate-90' }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -97,7 +98,7 @@
 
                 {{-- Record Actions --}}
                 @if (count($recordActions))
-                    <div class="filament-tree-node-actions flex items-center gap-1 ml-auto mr-2">
+                    <div class="filament-tree-node-actions flex items-center gap-3 ml-auto mr-2">
                         @foreach ($recordActions as $action)
                             {{ $action }}
                         @endforeach

@@ -20,8 +20,23 @@
                     }
 
                     function applyState() {
+                        // Apply visibility to children containers
                         document.querySelectorAll('.filament-tree-children').forEach(container => {
                             container.style.display = shouldExpand ? 'block' : 'none';
+                        });
+
+                        // Sync chevron rotation with visibility
+                        document.querySelectorAll('.tree-toggle-btn').forEach(button => {
+                            const svg = button.querySelector('svg');
+                            if (svg) {
+                                if (shouldExpand) {
+                                    svg.classList.remove('-rotate-90');
+                                    svg.classList.add('rotate-0');
+                                } else {
+                                    svg.classList.remove('rotate-0');
+                                    svg.classList.add('-rotate-90');
+                                }
+                            }
                         });
                     }
                 })();
@@ -118,7 +133,7 @@
 
                     {{-- Header Actions (after Save/Cancel) --}}
                     @if (count($headerActions = $tree->getHeaderActions()))
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-5">
                             @foreach ($headerActions as $action)
                                 {{ $action }}
                             @endforeach
@@ -181,6 +196,20 @@
         initTree();
 
         Livewire.hook('commit', ({ component, respond }) => {
+            // Before Livewire updates DOM, save current expand/collapse state of all nodes
+            const expandedNodes = new Set();
+            if (isCollapsible) {
+                document.querySelectorAll('[data-tree-item]').forEach(item => {
+                    const childrenContainer = item.querySelector('.filament-tree-children');
+                    if (childrenContainer && childrenContainer.style.display !== 'none') {
+                        const recordId = item.getAttribute('data-item-id');
+                        if (recordId) {
+                            expandedNodes.add(recordId);
+                        }
+                    }
+                });
+            }
+
             respond(() => {
                 setTimeout(() => {
                     // In manual save mode (!autoSave), only reinit if we don't have unsaved changes
@@ -195,14 +224,63 @@
                         // Normal mode or no unsaved changes: full reinit
                         initTree();
 
-                        // Apply expand/collapse state from localStorage immediately after DOM update
-                        if (isCollapsible && typeof applyInitialExpandState === 'function') {
-                            applyInitialExpandState();
+                        // Restore individual node expand/collapse states
+                        if (isCollapsible && expandedNodes.size > 0) {
+                            document.querySelectorAll('[data-tree-item]').forEach(item => {
+                                const recordId = item.getAttribute('data-item-id');
+                                const childrenContainer = item.querySelector('.filament-tree-children');
+                                const toggleBtn = item.querySelector('.tree-toggle-btn');
+                                const svg = toggleBtn?.querySelector('svg');
+
+                                if (childrenContainer && recordId) {
+                                    const shouldBeExpanded = expandedNodes.has(recordId);
+                                    childrenContainer.style.display = shouldBeExpanded ? 'block' : 'none';
+
+                                    // Sync chevron rotation
+                                    if (svg) {
+                                        if (shouldBeExpanded) {
+                                            svg.classList.remove('-rotate-90');
+                                            svg.classList.add('rotate-0');
+                                        } else {
+                                            svg.classList.remove('rotate-0');
+                                            svg.classList.add('-rotate-90');
+                                        }
+                                    }
+                                }
+                            });
                         }
                     }
                 }, 0);
             });
         });
+
+        // Global function to toggle individual tree nodes
+        window.toggleTreeNode = function(button, recordId) {
+            const item = button.closest('[data-tree-item]');
+            const childrenContainer = item.querySelector('.filament-tree-children');
+            const svg = button.querySelector('svg');
+
+            if (childrenContainer) {
+                const isCurrentlyVisible = childrenContainer.style.display !== 'none';
+
+                // Toggle visibility
+                childrenContainer.style.display = isCurrentlyVisible ? 'none' : 'block';
+
+                // Toggle chevron rotation
+                if (isCurrentlyVisible) {
+                    svg.classList.remove('rotate-0');
+                    svg.classList.add('-rotate-90');
+                } else {
+                    svg.classList.remove('-rotate-90');
+                    svg.classList.add('rotate-0');
+                }
+            }
+
+            // Note: We don't call Livewire here because:
+            // 1. Individual toggle state isn't persisted (only global expand/collapse state is)
+            // 2. Livewire re-render would override our client-side state
+            // If you need per-node persistence, store in localStorage here
+        };
 
         if (isCollapsible) {
             const expandAllBtn = document.getElementById('tree-expand-all');
@@ -212,8 +290,17 @@
                 expandAllBtn.addEventListener('click', () => {
                     document.querySelectorAll('[data-tree-item]').forEach(item => {
                         const childrenContainer = item.querySelector('.filament-tree-children');
+                        const toggleBtn = item.querySelector('.tree-toggle-btn');
+                        const svg = toggleBtn?.querySelector('svg');
+
                         if (childrenContainer) {
                             childrenContainer.style.display = 'block';
+                        }
+
+                        // Update chevron to expanded state
+                        if (svg) {
+                            svg.classList.remove('-rotate-90');
+                            svg.classList.add('rotate-0');
                         }
                     });
                     localStorage.setItem('filament_tree_expand_state', 'expanded');
@@ -224,8 +311,17 @@
                 collapseAllBtn.addEventListener('click', () => {
                     document.querySelectorAll('[data-tree-item]').forEach(item => {
                         const childrenContainer = item.querySelector('.filament-tree-children');
+                        const toggleBtn = item.querySelector('.tree-toggle-btn');
+                        const svg = toggleBtn?.querySelector('svg');
+
                         if (childrenContainer) {
                             childrenContainer.style.display = 'none';
+                        }
+
+                        // Update chevron to collapsed state
+                        if (svg) {
+                            svg.classList.remove('rotate-0');
+                            svg.classList.add('-rotate-90');
                         }
                     });
                     localStorage.setItem('filament_tree_expand_state', 'collapsed');
@@ -238,8 +334,22 @@
 
                 document.querySelectorAll('[data-tree-item]').forEach(item => {
                     const childrenContainer = item.querySelector('.filament-tree-children');
+                    const toggleBtn = item.querySelector('.tree-toggle-btn');
+                    const svg = toggleBtn?.querySelector('svg');
+
                     if (childrenContainer) {
                         childrenContainer.style.display = shouldExpand ? 'block' : 'none';
+                    }
+
+                    // Sync chevron rotation with visibility
+                    if (svg) {
+                        if (shouldExpand) {
+                            svg.classList.remove('-rotate-90');
+                            svg.classList.add('rotate-0');
+                        } else {
+                            svg.classList.remove('rotate-0');
+                            svg.classList.add('-rotate-90');
+                        }
                     }
                 });
             }

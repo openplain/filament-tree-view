@@ -35,7 +35,9 @@ trait HasHeaderActions
                 /** @var array<string, Action> $flatActions */
                 $flatActions = $action->getFlatActions();
 
-                $this->getLivewire()->mergeCachedFlatActions($flatActions);
+                foreach ($flatActions as $flatAction) {
+                    $this->getLivewire()->cacheAction($flatAction);
+                }
             } elseif ($action instanceof Action) {
                 $this->getLivewire()->cacheAction($action);
             } else {

@@ -67,17 +67,8 @@
                     <div></div> {{-- Spacer for flex layout --}}
                 @endif
 
-                {{-- Right Side: Header Actions, Status and Action Buttons --}}
+                {{-- Right Side: Status, Action Buttons, and Header Actions --}}
                 <div class="flex items-center gap-4">
-                    {{-- Header Actions --}}
-                    @if (count($headerActions = $tree->getHeaderActions()))
-                        <div class="flex items-center gap-2">
-                            @foreach ($headerActions as $action)
-                                {{ $action }}
-                            @endforeach
-                        </div>
-                    @endif
-
                     {{-- Unsaved Changes Indicator and Save/Cancel Buttons --}}
                     @if (!$tree->isAutoSave())
                         {{-- Unsaved Changes Indicator --}}
@@ -123,6 +114,15 @@
                             </x-slot>
                             Save Changes
                         </x-filament::button>
+                    @endif
+
+                    {{-- Header Actions (after Save/Cancel) --}}
+                    @if (count($headerActions = $tree->getHeaderActions()))
+                        <div class="flex items-center gap-2">
+                            @foreach ($headerActions as $action)
+                                {{ $action }}
+                            @endforeach
+                        </div>
                     @endif
                 </div>
             </div>

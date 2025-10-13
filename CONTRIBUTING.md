@@ -15,7 +15,7 @@ Thank you for considering contributing to Filament Tree View! We welcome contrib
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/filament-tree-view.git
+   git clone https://github.com/openplain/filament-tree-view.git
    cd filament-tree-view
    ```
 

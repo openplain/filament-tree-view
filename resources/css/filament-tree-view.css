@@ -1,8 +1,8 @@
 /**
- * Filament Tree View Styles
+ * Filament Tree View Custom Styles
  * ==========================
  *
- * Styles for the tree drag-and-drop interface.
+ * Custom styles for the tree drag-and-drop interface.
  * Uses Filament's CSS variables for theme compatibility.
  */
 
@@ -35,10 +35,15 @@
 }
 
 .filament-tree-children {
-    display: flex !important;
-    flex-direction: column !important;
+    /* Don't force display property - let JavaScript handle it via inline styles */
+    flex-direction: column;
     gap: 0.5rem !important;
     margin-top: 0.5rem !important;
+}
+
+/* When visible (display: block from JS), make it flex */
+.filament-tree-children[style*="display: block"] {
+    display: flex !important;
 }
 
 .filament-tree-node {
@@ -52,7 +57,7 @@
 .filament-tree-collapse-btn {
     flex-shrink: 0;
     padding: 0.25rem;
-    color: rgb(107 114 128);
+    color: var(--gray-500, rgb(107 114 128));
     transition: all 0.2s;
     cursor: pointer;
     background: transparent;
@@ -60,15 +65,15 @@
 }
 
 .filament-tree-collapse-btn:hover {
-    color: rgb(55 65 81);
+    color: var(--gray-700, rgb(55 65 81));
 }
 
 .dark .filament-tree-collapse-btn {
-    color: rgb(156 163 175);
+    color: var(--gray-400, rgb(156 163 175));
 }
 
 .dark .filament-tree-collapse-btn:hover {
-    color: rgb(209 213 219);
+    color: var(--gray-300, rgb(209 213 219));
 }
 
 .filament-tree-collapse-btn svg {
@@ -86,26 +91,28 @@
    ======================================== */
 
 .filament-tree-node-content {
-    background-color: rgb(255 255 255) !important;
-    border-radius: 0.5rem !important;
-    border: 1px solid rgb(229 231 235) !important;
-    padding: 0.75rem !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    background-color: var(--white, rgb(255 255 255)) !important;
+    border-radius: var(--rounded-lg, 0.5rem) !important;
+    border: 1px solid var(--gray-300, rgb(209 213 219)) !important;
+    padding: 0 !important;
+    box-shadow: var(--shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05)) !important;
     transition: all 0.2s ease !important;
 }
 
 .filament-tree-node-content:hover {
-    border-color: rgb(209 213 219) !important;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    background-color: var(--gray-50, rgb(249 250 251)) !important;
+    border-color: var(--gray-400, rgb(156 163 175)) !important;
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)) !important;
 }
 
 .dark .filament-tree-node-content {
-    background-color: rgb(17 24 39) !important;
-    border-color: rgb(55 65 81) !important;
+    background-color: var(--gray-900, rgb(17 24 39)) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark .filament-tree-node-content:hover {
-    border-color: rgb(75 85 99) !important;
+    background-color: #222223 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Same as normal - no change on hover */
 }
 
 /* ========================================

@@ -1,0 +1,84 @@
+/**
+ * Filament Tree View - Main CSS Entry Point
+ *
+ * This file is processed by Tailwind CSS to generate
+ * the final distribution CSS file with all utilities and custom styles.
+ */
+
+@import 'tailwindcss';
+
+/* Source directories for Tailwind to scan */
+@source './resources/views/**/*.blade.php';
+@source './src/**/*.php';
+
+/* Theme customizations */
+@theme {
+  --color-white: rgb(255 255 255);
+  --color-gray-50: rgb(249 250 251);
+  --color-gray-100: rgb(243 244 246);
+  --color-gray-200: rgb(229 231 235);
+  --color-gray-300: rgb(209 213 219);
+  --color-gray-400: rgb(156 163 175);
+  --color-gray-500: rgb(107 114 128);
+  --color-gray-600: rgb(75 85 99);
+  --color-gray-700: rgb(55 65 81);
+  --color-gray-800: rgb(31 41 55);
+  --color-gray-900: rgb(17 24 39);
+  --color-gray-950: rgb(3 7 18);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Border radius */
+  --rounded-lg: 0.5rem;
+}
+
+/* Dark mode variant */
+@variant dark (&:where(.dark, .dark *));
+
+/* Import custom tree view styles */
+@import './filament-tree-view.css';
+
+/*
+ * Force include dynamically used classes
+ * These classes are added/removed by JavaScript and won't be detected by @source
+ */
+@utility rotate-0 {
+  transform: rotate(0deg);
+}
+
+@utility -rotate-90 {
+  transform: rotate(-90deg);
+}
+
+@utility transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}

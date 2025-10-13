@@ -59,7 +59,7 @@ Publish the package assets:
 php artisan filament:assets
 ```
 
-That's it! No config files to publish, no service providers to register - everything works out of the box.
+That's it! The plugin registers its CSS and JavaScript assets with Filament automatically. Everything is now configured and ready to use.
 
 ## Quick Start
 
@@ -591,6 +591,23 @@ public static function tree(Tree $tree): Tree
 
 ## Troubleshooting
 
+### Styling Issues or Missing Styles
+
+If the tree view appears unstyled or layouts look broken:
+
+1. **Republish assets**:
+   ```bash
+   php artisan filament:assets
+   ```
+
+2. **Clear browser cache** - Hard refresh your browser (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows/Linux)
+
+3. **Clear application caches**:
+   ```bash
+   php artisan filament:cache-components
+   php artisan view:clear
+   ```
+
 ### JavaScript Not Loading
 
 If drag-and-drop doesn't work after installation:
@@ -625,6 +642,20 @@ For trees with hundreds of nodes:
     $query->with(['children', 'someRelation'])
 )
 ```
+
+### ComponentNotFoundException After Creating TreePage
+
+If you encounter `Unable to find component: [app.filament.resources.blog.categories.pages.tree-categories]` when clicking actions:
+
+**Cause:** Laravel and Livewire cache component registries. New TreePage classes aren't immediately discoverable.
+
+**Fix:**
+```bash
+composer dump-autoload
+php artisan optimize:clear
+```
+
+This clears Composer's autoloader, Livewire's component cache, and all Laravel caches. The error occurs after creating new TreePage classes or when updating the plugin in development environments.
 
 ## Testing
 

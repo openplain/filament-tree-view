@@ -2,6 +2,7 @@
 
 namespace Openplain\FilamentTreeView;
 
+use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Spatie\LaravelPackageTools\Package;
@@ -22,22 +23,10 @@ class FilamentTreeViewServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        // Register JavaScript assets
-        FilamentAsset::register(
-            $this->getAssets(),
-            $this->getAssetPackageName()
-        );
-    }
-
-    protected function getAssetPackageName(): ?string
-    {
-        return 'openplain/filament-tree-view';
-    }
-
-    protected function getAssets(): array
-    {
-        return [
+        // Register assets using Filament v4 pattern
+        FilamentAsset::register([
+            Css::make('filament-tree-view-styles', __DIR__ . '/../resources/dist/filament-tree-view.css'),
             Js::make('filament-tree-view-scripts', __DIR__ . '/../resources/dist/filament-tree-view.js'),
-        ];
+        ], package: 'openplain/filament-tree-view');
     }
 }

@@ -45,7 +45,7 @@
 
         @if (count($records) > 0)
             {{-- Header Bar --}}
-            <div class="flex items-center justify-between gap-3 mb-2">
+            <div class="flex items-center justify-between gap-3 mb-1.5">
                 {{-- Left Side: Expand/Collapse Buttons --}}
                 @if ($tree->isCollapsible())
                     <div class="fi-btn-group">

@@ -35,4 +35,5 @@ compile({
     ...defaultOptions,
     entryPoints: ['./resources/js/index.js'],
     outfile: './resources/dist/filament-tree-view.js',
+    format: 'iife',
 })

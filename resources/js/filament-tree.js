@@ -437,8 +437,7 @@ export default class FilamentTree {
             if (!childrenContainer) {
                 childrenContainer = document.createElement('div');
                 childrenContainer.className = 'filament-tree-children';
-                childrenContainer.style.marginLeft = '2rem';
-                childrenContainer.style.display = 'block'; // Make sure it's visible
+                // All styling is handled by CSS - no inline styles needed
                 targetElement.appendChild(childrenContainer);
             }
 

@@ -58,23 +58,15 @@ class ToggleField extends Field
         $icon = $state ? $this->trueIcon : $this->falseIcon;
         $color = $state ? $this->trueColor : $this->falseColor;
 
-        // Use Filament's generate_icon_html with inline color style
-        $colorMap = [
-            'success' => 'rgb(34, 197, 94)', // green-500
-            'danger' => 'rgb(239, 68, 68)', // red-500
-            'warning' => 'rgb(245, 158, 11)', // amber-500
-            'info' => 'rgb(59, 130, 246)', // blue-500
-            'gray' => 'rgb(107, 114, 128)', // gray-500
-            'primary' => 'rgb(99, 102, 241)', // indigo-500
-        ];
-
-        $colorValue = $colorMap[$color] ?? $colorMap['gray'];
-
-        // Generate icon HTML with custom styling
+        // Generate icon HTML
         $iconHtml = generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Medium);
 
-        return '<div class="fi-tree-toggle-icon" style="color: ' . $colorValue . ';">' .
-            $iconHtml->toHtml() .
-            '</div>';
+        // Use Filament's color classes instead of inline styles
+        // This respects theme customization and dark mode
+        return sprintf(
+            '<div class="fi-tree-toggle-icon fi-color-%s">%s</div>',
+            $color,
+            $iconHtml->toHtml()
+        );
     }
 }

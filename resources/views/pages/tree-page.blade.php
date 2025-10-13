@@ -211,7 +211,8 @@
             }
 
             respond(() => {
-                setTimeout(() => {
+                // Use requestAnimationFrame to ensure DOM is ready and prevent flicker
+                requestAnimationFrame(() => {
                     // In manual save mode (!autoSave), only reinit if we don't have unsaved changes
                     // Otherwise, reinitializing would wipe out our optimistic DOM updates
                     if (!isAutoSave && window.currentTreeInstance?.hasUnsavedChanges) {
@@ -224,8 +225,17 @@
                         // Normal mode or no unsaved changes: full reinit
                         initTree();
 
-                        // Restore individual node expand/collapse states
-                        if (isCollapsible && expandedNodes.size > 0) {
+                        // Restore individual node expand/collapse states immediately to prevent flicker
+                        // Always restore if collapsible, even if all nodes were collapsed (expandedNodes.size === 0)
+                        if (isCollapsible) {
+                            // Also check localStorage for individual node states as a failsafe
+                            const storageKey = 'filament_tree_nodes_state';
+                            let nodesState = {};
+                            try {
+                                const stored = localStorage.getItem(storageKey);
+                                if (stored) nodesState = JSON.parse(stored);
+                            } catch (e) {}
+
                             document.querySelectorAll('[data-tree-item]').forEach(item => {
                                 const recordId = item.getAttribute('data-item-id');
                                 const childrenContainer = item.querySelector('.filament-tree-children');
@@ -233,7 +243,14 @@
                                 const svg = toggleBtn?.querySelector('svg');
 
                                 if (childrenContainer && recordId) {
-                                    const shouldBeExpanded = expandedNodes.has(recordId);
+                                    // Check captured state first, then localStorage, then default
+                                    let shouldBeExpanded = expandedNodes.has(recordId);
+
+                                    // If we have an individual node state in localStorage, prefer that
+                                    if (nodesState.hasOwnProperty(recordId)) {
+                                        shouldBeExpanded = nodesState[recordId];
+                                    }
+
                                     childrenContainer.style.display = shouldBeExpanded ? 'block' : 'none';
 
                                     // Sync chevron rotation
@@ -250,7 +267,7 @@
                             });
                         }
                     }
-                }, 0);
+                });
             });
         });
 
@@ -274,12 +291,18 @@
                     svg.classList.remove('-rotate-90');
                     svg.classList.add('rotate-0');
                 }
-            }
 
-            // Note: We don't call Livewire here because:
-            // 1. Individual toggle state isn't persisted (only global expand/collapse state is)
-            // 2. Livewire re-render would override our client-side state
-            // If you need per-node persistence, store in localStorage here
+                // Persist individual node state to localStorage
+                const storageKey = 'filament_tree_nodes_state';
+                let nodesState = {};
+                try {
+                    const stored = localStorage.getItem(storageKey);
+                    if (stored) nodesState = JSON.parse(stored);
+                } catch (e) {}
+
+                nodesState[recordId] = !isCurrentlyVisible;
+                localStorage.setItem(storageKey, JSON.stringify(nodesState));
+            }
         };
 
         if (isCollapsible) {
@@ -304,6 +327,8 @@
                         }
                     });
                     localStorage.setItem('filament_tree_expand_state', 'expanded');
+                    // Clear individual node states since we're expanding all
+                    localStorage.removeItem('filament_tree_nodes_state');
                 });
             }
 
@@ -325,6 +350,8 @@
                         }
                     });
                     localStorage.setItem('filament_tree_expand_state', 'collapsed');
+                    // Clear individual node states since we're collapsing all
+                    localStorage.removeItem('filament_tree_nodes_state');
                 });
             }
 
@@ -332,23 +359,38 @@
                 const savedState = localStorage.getItem('filament_tree_expand_state');
                 const shouldExpand = savedState !== null ? savedState === 'expanded' : defaultExpanded;
 
+                // Get individual node states from localStorage
+                const storageKey = 'filament_tree_nodes_state';
+                let nodesState = {};
+                try {
+                    const stored = localStorage.getItem(storageKey);
+                    if (stored) nodesState = JSON.parse(stored);
+                } catch (e) {}
+
                 document.querySelectorAll('[data-tree-item]').forEach(item => {
                     const childrenContainer = item.querySelector('.filament-tree-children');
                     const toggleBtn = item.querySelector('.tree-toggle-btn');
                     const svg = toggleBtn?.querySelector('svg');
+                    const recordId = item.getAttribute('data-item-id');
 
                     if (childrenContainer) {
-                        childrenContainer.style.display = shouldExpand ? 'block' : 'none';
-                    }
+                        // Check if this specific node has a saved state
+                        let nodeExpanded = shouldExpand;
+                        if (recordId && nodesState.hasOwnProperty(recordId)) {
+                            nodeExpanded = nodesState[recordId];
+                        }
 
-                    // Sync chevron rotation with visibility
-                    if (svg) {
-                        if (shouldExpand) {
-                            svg.classList.remove('-rotate-90');
-                            svg.classList.add('rotate-0');
-                        } else {
-                            svg.classList.remove('rotate-0');
-                            svg.classList.add('-rotate-90');
+                        childrenContainer.style.display = nodeExpanded ? 'block' : 'none';
+
+                        // Sync chevron rotation with visibility
+                        if (svg) {
+                            if (nodeExpanded) {
+                                svg.classList.remove('-rotate-90');
+                                svg.classList.add('rotate-0');
+                            } else {
+                                svg.classList.remove('rotate-0');
+                                svg.classList.add('-rotate-90');
+                            }
                         }
                     }
                 });

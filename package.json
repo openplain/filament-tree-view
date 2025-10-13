@@ -1,0 +1,15 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "node bin/build.js --dev",
+        "build": "node bin/build.js"
+    },
+    "devDependencies": {
+        "esbuild": "^0.19.2"
+    },
+    "dependencies": {
+        "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
+        "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0"
+    }
+}

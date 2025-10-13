@@ -2,47 +2,42 @@
 
 namespace Openplain\FilamentTreeView;
 
-use Illuminate\Support\ServiceProvider;
+use Filament\Support\Assets\Js;
+use Filament\Support\Facades\FilamentAsset;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class FilamentTreeViewServiceProvider extends ServiceProvider
+class FilamentTreeViewServiceProvider extends PackageServiceProvider
 {
-    public function boot(): void
+    public static string $name = 'filament-tree-view';
+
+    public function configurePackage(Package $package): void
     {
-        // Register views
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-tree-view');
-
-        // Register translations
-        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'filament-tree-view');
-
-        // Publish config
-        $this->publishes([
-            __DIR__ . '/../config/filament-tree-view.php' => config_path('filament-tree-view.php'),
-        ], 'filament-tree-view-config');
-
-        // Publish views
-        $this->publishes([
-            __DIR__ . '/../resources/views' => resource_path('views/vendor/filament-tree-view'),
-        ], 'filament-tree-view-views');
-
-        // Publish translations
-        $this->publishes([
-            __DIR__ . '/../resources/lang' => lang_path('vendor/filament-tree-view'),
-        ], 'filament-tree-view-translations');
-
-        // Register commands if running in console
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                // Commands will be registered here
-            ]);
-        }
+        $package
+            ->name(static::$name)
+            ->hasViews()
+            ->hasTranslations()
+            ->hasConfigFile();
     }
 
-    public function register(): void
+    public function packageBooted(): void
     {
-        // Merge config
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/filament-tree-view.php',
-            'filament-tree-view'
+        // Register JavaScript assets
+        FilamentAsset::register(
+            $this->getAssets(),
+            $this->getAssetPackageName()
         );
+    }
+
+    protected function getAssetPackageName(): ?string
+    {
+        return 'openplain/filament-tree-view';
+    }
+
+    protected function getAssets(): array
+    {
+        return [
+            Js::make('filament-tree-view-scripts', __DIR__ . '/../resources/dist/filament-tree-view.js'),
+        ];
     }
 }

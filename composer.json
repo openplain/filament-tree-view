@@ -1,0 +1,59 @@
+{
+    "name": "openplain/filament-tree-view",
+    "description": "Tree view for Filament resources - drop-in replacement for Table with drag-and-drop hierarchical data management",
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "tree",
+        "hierarchy",
+        "laravel",
+        "livewire"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Openplain",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2|^8.3",
+        "filament/filament": "^4.0",
+        "staudenmeir/laravel-adjacency-list": "^1.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "pestphp/pest": "^3.0",
+        "orchestra/testbench": "^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Openplain\\FilamentTreeView\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Openplain\\FilamentTreeView\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Openplain\\FilamentTreeView\\FilamentTreeViewServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "pint": "vendor/bin/pint"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

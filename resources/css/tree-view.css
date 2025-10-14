@@ -1,0 +1,361 @@
+/**
+ * Filament Tree View - Main CSS Entry Point
+ *
+ * This file is processed by Tailwind CSS to generate
+ * the final distribution CSS file with all utilities and custom styles.
+ */
+
+@import 'tailwindcss';
+
+/* Source directories for Tailwind to scan */
+@source './resources/views/**/*.blade.php';
+@source './src/**/*.php';
+
+/* Dark mode variant */
+@variant dark (&:where(.dark, .dark *));
+
+/* ========================================
+   Tree Component Color Variables
+   ======================================== */
+
+:root {
+  /* Shadow colors */
+  --tree-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --tree-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Dark mode border colors */
+  --tree-border-dark: rgba(255, 255, 255, 0.1);
+  --tree-border-dark-hover: rgba(255, 255, 255, 0.15);
+
+  /*
+   * Spacing System
+   * =============
+   * All tree spacing is controlled through these variables.
+   * Changing these will maintain consistent spacing throughout the tree.
+   *
+   * Spacing Strategy:
+   * - Uses margin-bottom on each node for consistent vertical spacing
+   * - This ensures uniform spacing regardless of nesting level or position
+   * - No gap property needed, avoiding "first child" spacing issues
+   */
+
+  /* Vertical spacing between tree nodes */
+  --tree-node-margin-bottom: 0.5rem; /* 8px - space below each node */
+
+  /* Horizontal indentation for nested levels */
+  --tree-indent: 2rem; /* 32px - how much each level indents */
+
+  /* Internal node content spacing - Controls overall item height */
+  --tree-node-padding-y: 0.125rem; /* 2px - top/bottom padding inside node (minimal, matches button height) */
+  --tree-node-padding-x: 0.125rem; /* 2px - left/right padding inside node (reduced for edge-to-edge layout) */
+
+  /* Spacing between elements inside a node */
+  --tree-element-gap: 0.5rem; /* 8px - gap between drag handle, toggle, content, actions */
+
+  /* Specific element padding */
+  --tree-handle-padding: 0rem; /* 0px - no padding around drag handle */
+  --tree-handle-margin-right: 0.375rem; /* 6px - space after drag handle */
+  --tree-toggle-padding-y: 0rem; /* 0px - no extra vertical padding on toggle button */
+  --tree-toggle-width: 1.5rem; /* 24px - fixed width for toggle button area (with spacing for alignment) */
+  --tree-content-margin-x: 0.375rem; /* 6px - left/right margin for main content (reduced for better balance) */
+  --tree-actions-margin: 0.5rem; /* 8px - margin for actions container */
+  --tree-actions-gap: 1.25rem; /* 20px - gap between action buttons (increased for better spacing) */
+
+  /* Sizing */
+  --tree-border-radius: 0.5rem;
+  --tree-icon-size: 1rem;
+  --tree-drop-zone-height: 24px;
+
+  /* Opacity values */
+  --tree-opacity-dragging: 0.4;
+  --tree-opacity-handle: 0.5;
+  --tree-opacity-handle-hover: 1;
+
+  /* Transitions */
+  --tree-transition-fast: 0.08s ease-out;
+  --tree-transition-normal: 0.2s ease;
+}
+
+/*
+ * Force include dynamically used classes
+ * These classes are added/removed by JavaScript and won't be detected by @source
+ */
+@utility rotate-0 {
+  transform: rotate(0deg);
+}
+
+@utility -rotate-90 {
+  transform: rotate(-90deg);
+}
+
+@utility transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+/* ========================================
+   Custom Tree Component Styles
+   ======================================== */
+
+/* Dragging Visual Feedback */
+.filament-tree-node.filament-tree-dragging {
+    opacity: var(--tree-opacity-dragging);
+    transition: opacity var(--tree-transition-normal);
+}
+
+.filament-tree-node.filament-tree-dragging .filament-tree-node-content {
+    border-style: dashed;
+    transition: border-style var(--tree-transition-normal);
+}
+
+.filament-tree-drop-indicator {
+    transition: all var(--tree-transition-fast) !important;
+}
+
+/* Tree Layout & Spacing */
+.filament-tree-container {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.filament-tree-children {
+    /* Use flex layout when visible - JavaScript will toggle display: none/block */
+    display: flex;
+    flex-direction: column;
+    /* Indentation for nested levels */
+    margin-left: var(--tree-indent) !important;
+    /* Space above first child */
+    margin-top: var(--tree-node-margin-bottom) !important;
+}
+
+/* When JavaScript sets display: block, ensure we use flex layout */
+.filament-tree-children[style*="display: block"],
+.filament-tree-children[style*="display:block"] {
+    display: flex !important;
+}
+
+.filament-tree-node {
+    /* No margin on wrapper - let content handle spacing */
+}
+
+/* Put margin on the visible content card for consistent spacing */
+.filament-tree-node-content {
+    margin-bottom: var(--tree-node-margin-bottom) !important;
+}
+
+/* Node Content Internal Spacing */
+.filament-tree-node-content .flex.items-center {
+    padding: var(--tree-node-padding-y) var(--tree-node-padding-x);
+    align-items: center !important; /* Ensure vertical centering */
+}
+
+/* Drag Handle */
+.filament-tree-drag-handle {
+    padding: var(--tree-handle-padding);
+    margin-right: var(--tree-handle-margin-right);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Toggle Button Container - Fixed width for alignment */
+.filament-tree-toggle-container {
+    width: var(--tree-toggle-width);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tree-toggle-btn {
+    padding-top: var(--tree-toggle-padding-y);
+    padding-bottom: var(--tree-toggle-padding-y);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Content Area */
+.filament-tree-node-title {
+    margin-left: var(--tree-content-margin-x);
+    margin-right: var(--tree-content-margin-x); /* Reduced space - let flex handle layout */
+}
+
+/* Fields inside content that are right-aligned */
+.filament-tree-node-title .ml-auto {
+    margin-left: 1rem !important; /* Reduced space between left content and right-aligned fields */
+}
+
+/* Actions Container */
+.filament-tree-node-actions {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem; /* Space between fields and actions */
+    margin-right: var(--tree-actions-margin);
+    gap: var(--tree-actions-gap) !important; /* Space between action buttons */
+}
+
+/* Collapse/Expand Button */
+.filament-tree-collapse-btn {
+    flex-shrink: 0;
+    padding: 0.25rem;
+    color: var(--gray-500);
+    transition: all var(--tree-transition-normal);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.filament-tree-collapse-btn:hover {
+    color: var(--gray-700);
+}
+
+.dark .filament-tree-collapse-btn {
+    color: var(--gray-400);
+}
+
+.dark .filament-tree-collapse-btn:hover {
+    color: var(--gray-300);
+}
+
+.filament-tree-collapse-btn svg {
+    width: var(--tree-icon-size);
+    height: var(--tree-icon-size);
+    transition: transform var(--tree-transition-normal);
+}
+
+.filament-tree-collapse-btn.collapsed svg {
+    transform: rotate(-90deg);
+}
+
+/* Node Content Styling (Card Appearance) */
+.filament-tree-node-content {
+    background-color: var(--white) !important;
+    border-radius: var(--tree-border-radius) !important;
+    border: 1px solid var(--gray-300) !important;
+    padding: 0 !important;
+    box-shadow: var(--tree-shadow-sm) !important;
+    transition: all var(--tree-transition-normal) !important;
+}
+
+.filament-tree-node-content:hover {
+    background-color: var(--gray-50) !important;
+    border-color: var(--gray-400) !important;
+    box-shadow: var(--tree-shadow-md) !important;
+}
+
+.dark .filament-tree-node-content {
+    background-color: var(--gray-900) !important;
+    border-color: var(--tree-border-dark) !important;
+}
+
+.dark .filament-tree-node-content:hover {
+    background-color: var(--gray-800) !important;
+    border-color: var(--tree-border-dark-hover) !important;
+}
+
+/* Drag Handle */
+.filament-tree-drag-handle {
+    cursor: move;
+    opacity: var(--tree-opacity-handle);
+    transition: opacity var(--tree-transition-normal);
+}
+
+.filament-tree-drag-handle:hover {
+    opacity: var(--tree-opacity-handle-hover);
+}
+
+/* Drop Zones */
+.filament-tree-drop-at-end {
+    min-height: var(--tree-drop-zone-height);
+    transition: background-color var(--tree-transition-normal);
+}
+
+/* Toggle Field Icon Colors - Use Filament's color system */
+.fi-tree-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* Ensure vertical centering */
+}
+
+/* Ensure toggle icon SVG is centered */
+.fi-tree-toggle-icon svg {
+    display: block;
+}
+
+/* Apply Filament color classes to icon SVGs */
+.fi-tree-toggle-icon.fi-color-success {
+    color: var(--success-600);
+}
+
+.fi-tree-toggle-icon.fi-color-danger {
+    color: var(--danger-600);
+}
+
+.fi-tree-toggle-icon.fi-color-warning {
+    color: var(--warning-600);
+}
+
+.fi-tree-toggle-icon.fi-color-info {
+    color: var(--info-600);
+}
+
+.fi-tree-toggle-icon.fi-color-primary {
+    color: var(--primary-600);
+}
+
+.fi-tree-toggle-icon.fi-color-gray {
+    color: var(--gray-600);
+}
+
+/* Dark mode adjustments */
+.dark .fi-tree-toggle-icon.fi-color-success {
+    color: var(--success-500);
+}
+
+.dark .fi-tree-toggle-icon.fi-color-danger {
+    color: var(--danger-500);
+}
+
+.dark .fi-tree-toggle-icon.fi-color-warning {
+    color: var(--warning-500);
+}
+
+.dark .fi-tree-toggle-icon.fi-color-info {
+    color: var(--info-500);
+}
+
+.dark .fi-tree-toggle-icon.fi-color-primary {
+    color: var(--primary-500);
+}
+
+.dark .fi-tree-toggle-icon.fi-color-gray {
+    color: var(--gray-500);
+}

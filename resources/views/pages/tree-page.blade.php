@@ -417,6 +417,21 @@
                     }
                 });
             }
+
+            // Keyboard shortcut: Command+S (Mac) or Ctrl+S (Windows)
+            document.addEventListener('keydown', (event) => {
+                const isMod = event.metaKey || event.ctrlKey;
+                const isS = event.key === 's' || event.key === 'S';
+
+                if (isMod && isS) {
+                    event.preventDefault(); // Prevent browser's default save dialog
+
+                    // Only trigger if save button exists and is not disabled
+                    if (saveBtn && !saveBtn.disabled && window.currentTreeInstance) {
+                        window.currentTreeInstance.saveChanges();
+                    }
+                }
+            });
         }
     </script>
     @endscript

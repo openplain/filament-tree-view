@@ -22,7 +22,6 @@
                 class="filament-tree-drop-at-end"
                 data-drop-at-end
                 data-depth="0"
-                style="min-height: 24px;"
             ></div>
         </div>
     @else

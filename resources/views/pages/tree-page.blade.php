@@ -142,6 +142,13 @@
                         'livewire' => $this
                     ])
                 @endforeach
+
+                {{-- Drop zone at end for root level --}}
+                <div
+                    class="filament-tree-drop-at-end"
+                    data-drop-at-end
+                    data-depth="0"
+                ></div>
             </div>
         @else
             <div class="rounded-xl bg-white px-6 py-12 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">

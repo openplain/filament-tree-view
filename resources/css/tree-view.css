@@ -64,7 +64,7 @@
   /* Sizing */
   --tree-border-radius: 0.5rem;
   --tree-icon-size: 1rem;
-  --tree-drop-zone-height: 24px;
+  --tree-drop-zone-height: 120px;
 
   /* Opacity values */
   --tree-opacity-dragging: 0.4;
@@ -142,12 +142,16 @@
 .filament-tree-container {
     display: flex !important;
     flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding-bottom: 1rem !important;
 }
 
 .filament-tree-children {
     /* Use flex layout when visible - JavaScript will toggle display: none/block */
     display: flex;
     flex-direction: column;
+    /* Consistent spacing between children */
+    gap: 0.5rem !important;
     /* Indentation for nested levels */
     margin-left: var(--tree-indent) !important;
     /* Space above first child */
@@ -161,12 +165,11 @@
 }
 
 .filament-tree-node {
-    /* No margin on wrapper - let content handle spacing */
+    /* No margin on wrapper - container gap handles spacing */
 }
 
-/* Put margin on the visible content card for consistent spacing */
 .filament-tree-node-content {
-    margin-bottom: var(--tree-node-margin-bottom) !important;
+    /* No margin-bottom - container gap handles spacing */
 }
 
 /* Node Content Internal Spacing */
@@ -296,6 +299,8 @@
     min-height: var(--tree-drop-zone-height);
     transition: background-color var(--tree-transition-normal);
 }
+
+/* Optional: Show visual feedback when dragging (can be enabled if desired) */
 
 /* Toggle Field Icon Colors - Use Filament's color system */
 .fi-tree-toggle-icon {

@@ -32,33 +32,80 @@ Thank you for considering contributing to Filament Tree View! We welcome contrib
 
 ## Development Workflow
 
-### Running the Demo App
+### Testing Your Changes
 
-The package includes a demo Laravel application for testing:
+This package does not include a demo application. To test your changes, you'll need to use the package in a Laravel application with Filament installed.
 
-```bash
-cd demo-app
-composer install
-php artisan migrate
-php artisan db:seed
-php artisan serve
+**Option 1: Use Composer Path Repository (Recommended)**
+
+In your test Laravel application's `composer.json`, add a path repository:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../filament-tree-view"
+        }
+    ]
+}
 ```
 
-Visit http://localhost:8000/admin to see the tree view in action.
-
-### Building JavaScript
-
-When making changes to JavaScript:
+Then require the package:
 
 ```bash
-# Watch mode for development
+composer require openplain/filament-tree-view:@dev
+```
+
+**Option 2: Create a Fresh Test Application**
+
+```bash
+# Create a new Laravel app
+composer create-project laravel/laravel test-app
+cd test-app
+
+# Install Filament
+composer require filament/filament
+php artisan filament:install --panels
+
+# Add path repository and install your local package
+# (Edit composer.json as shown in Option 1)
+composer require openplain/filament-tree-view:@dev
+```
+
+**Publishing Assets**
+
+After making changes to the package, publish the assets to your test application:
+
+```bash
+php artisan filament:assets
+```
+
+Or if you need to force republish:
+
+```bash
+php artisan vendor:publish --tag=filament-tree-view-assets --force
+```
+
+### Building JavaScript and CSS
+
+When making changes to JavaScript or CSS files in the package:
+
+```bash
+# Watch mode for development (auto-rebuilds on file changes)
 npm run dev
 
-# Production build
+# Production build (optimized for distribution)
 npm run build
 ```
 
-**Important:** Always run `npm run build` before committing to ensure the compiled assets are up to date.
+**Development Workflow:**
+1. Make your changes to source files in `resources/js/` or `resources/css/`
+2. Run `npm run build` to compile the assets to `resources/dist/`
+3. Republish assets to your test application: `php artisan vendor:publish --tag=filament-tree-view-assets --force`
+4. Refresh your browser to see changes
+
+**Important:** Always run `npm run build` before committing to ensure the compiled distribution assets are up to date.
 
 ### Code Style
 
@@ -93,8 +140,9 @@ Please add tests for any new features or bug fixes.
 3. **Update documentation** - Add/update README.md if needed
 4. **Add tests** - Cover new functionality with tests
 5. **Run code style** - Execute `vendor/bin/pint` before committing
-6. **Build assets** - Run `npm run build` if you changed JavaScript
-7. **Write clear commits** - Use descriptive commit messages
+6. **Build assets** - Run `npm run build` if you changed JavaScript or CSS
+7. **Test your changes** - Verify functionality in a Laravel application with Filament
+8. **Write clear commits** - Use descriptive commit messages
 
 ### Commit Message Format
 

@@ -756,5 +756,5 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 ---
 
 <p align="center">
-  <strong>Built with ❤️ by <a href="https://openplain.com">Openplain</a></strong>
+  <strong>Built with ❤️ by <a href="https://openplain.dev">Openplain</a></strong>
 </p>

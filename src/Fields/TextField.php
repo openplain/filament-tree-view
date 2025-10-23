@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class TextField extends Field
 {
-    protected ?string $color = null;
+    protected string|Closure|null $color = null;
+
+    protected ?string $size = null;
 
     protected ?int $characterLimit = null;
 
@@ -18,12 +20,25 @@ class TextField extends Field
 
     protected string|FontWeight|Closure|null $weight = null;
 
+    protected ?Closure $formatStateUsing = null;
+
     /**
      * Set the text color.
+     * Accepts either a string color name or a Closure that receives the state and record.
      */
-    public function color(string $color): static
+    public function color(string|Closure $color): static
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    /**
+     * Set the text size.
+     */
+    public function size(string $size): static
+    {
+        $this->size = $size;
 
         return $this;
     }
@@ -73,6 +88,19 @@ class TextField extends Field
     }
 
     /**
+     * Format the state using a custom closure.
+     * The closure receives the state value and optionally the record.
+     *
+     * @param  Closure(mixed, Model|array): string  $callback
+     */
+    public function formatStateUsing(Closure $callback): static
+    {
+        $this->formatStateUsing = $callback;
+
+        return $this;
+    }
+
+    /**
      * Render the text field for the given record.
      */
     public function render(Model|array $record): string
@@ -80,8 +108,13 @@ class TextField extends Field
         // Get the field value
         $state = data_get($record, $this->name);
 
-        // Format the state
-        $formatted = (string) $state;
+        // Apply custom formatting if set
+        if ($this->formatStateUsing) {
+            $formatted = (string) ($this->formatStateUsing)($state, $record);
+        } else {
+            // Default formatting
+            $formatted = (string) $state;
+        }
 
         // Apply character limit if set
         if ($this->characterLimit && strlen($formatted) > $this->characterLimit) {
@@ -89,10 +122,28 @@ class TextField extends Field
         }
 
         // Build CSS classes
-        $classes = ['text-sm']; // Default Filament text size (14px)
+        $classes = [];
+
+        // Apply size if set, otherwise use default
+        if ($this->size) {
+            $sizeMap = [
+                'xs' => 'text-xs',
+                'sm' => 'text-sm',
+                'base' => 'text-base',
+                'lg' => 'text-lg',
+                'xl' => 'text-xl',
+            ];
+            $classes[] = $sizeMap[$this->size] ?? 'text-sm';
+        } else {
+            $classes[] = 'text-sm'; // Default Filament text size (14px)
+        }
 
         // Apply color if set
         if ($this->color) {
+            $color = $this->color instanceof Closure
+                ? ($this->color)($state, $record)
+                : $this->color;
+
             $colorMap = [
                 'gray' => 'text-gray-600 dark:text-gray-400',
                 'primary' => 'text-primary-600 dark:text-primary-400',
@@ -101,7 +152,7 @@ class TextField extends Field
                 'danger' => 'text-danger-600 dark:text-danger-400',
                 'info' => 'text-info-600 dark:text-info-400',
             ];
-            $classes[] = $colorMap[$this->color] ?? '';
+            $classes[] = $colorMap[$color] ?? '';
         }
 
         // Apply weight if set

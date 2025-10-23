@@ -37,12 +37,52 @@ class IconField extends Field
     }
 
     /**
+     * Set the icon for the true state.
+     */
+    public function trueIcon(string $icon): static
+    {
+        $this->trueIcon = $icon;
+
+        return $this;
+    }
+
+    /**
+     * Set the icon for the false state.
+     */
+    public function falseIcon(string $icon): static
+    {
+        $this->falseIcon = $icon;
+
+        return $this;
+    }
+
+    /**
      * Set custom colors for true/false states.
      */
     public function colors(string $trueColor, string $falseColor): static
     {
         $this->trueColor = $trueColor;
         $this->falseColor = $falseColor;
+
+        return $this;
+    }
+
+    /**
+     * Set the color for the true state.
+     */
+    public function trueColor(string $color): static
+    {
+        $this->trueColor = $color;
+
+        return $this;
+    }
+
+    /**
+     * Set the color for the false state.
+     */
+    public function falseColor(string $color): static
+    {
+        $this->falseColor = $color;
 
         return $this;
     }

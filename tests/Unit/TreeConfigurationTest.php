@@ -94,3 +94,22 @@ it('can set record actions', function () {
 
     expect($tree->getRecordActions())->toHaveCount(2);
 });
+
+it('can modify query using closure', function () {
+    $livewire = Mockery::mock('Openplain\FilamentTreeView\Contracts\HasTree');
+
+    // Create a mock query builder
+    $mockQuery = Mockery::mock('Illuminate\Database\Eloquent\Builder');
+    $mockQuery->shouldReceive('where')->with('status', 'active')->once()->andReturnSelf();
+    $mockQuery->shouldReceive('orderBy')->with('name')->once()->andReturnSelf();
+
+    $tree = Tree::make($livewire)
+        ->query($mockQuery)
+        ->modifyQueryUsing(fn ($query) => $query->where('status', 'active')->orderBy('name'));
+
+    // Trigger query evaluation
+    $tree->getQuery();
+
+    // Mockery will automatically verify the expectations
+    expect(true)->toBeTrue();
+});

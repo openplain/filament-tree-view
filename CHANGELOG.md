@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-10-23
+
+### Fixed
+- 🐛 Implemented missing `modifyQueryUsing()` method that was documented but not functional ([#1](https://github.com/openplain/filament-tree-view/issues/1))
+- 🐛 Fixed `getTreeRecords()` to respect configured query modifications
+
+### Added
+- ✅ Added test coverage for `modifyQueryUsing()` method
+
+## [0.1.1] - 2025-10-23
+
 ## [0.1.0] - 2025-01-15
 
 ### Added
@@ -47,5 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built on [staudenmeir/laravel-adjacency-list](https://github.com/staudenmeir/laravel-adjacency-list)
 - Built with [Pragmatic Drag & Drop](https://atlassian.design/components/pragmatic-drag-and-drop) by Atlassian
 
-[Unreleased]: https://github.com/openplain/filament-tree-view/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/openplain/filament-tree-view/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/openplain/filament-tree-view/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/openplain/filament-tree-view/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/openplain/filament-tree-view/releases/tag/v0.1.0

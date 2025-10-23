@@ -11,9 +11,9 @@
     },
     "devDependencies": {
         "@tailwindcss/cli": "^4.1.14",
-        "esbuild": "^0.19.2",
+        "esbuild": "^0.25.11",
         "tailwindcss": "^4.1.0",
-        "vite": "^5.4.0"
+        "vite": "^7.1.12"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",

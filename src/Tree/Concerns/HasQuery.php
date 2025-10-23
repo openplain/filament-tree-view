@@ -10,6 +10,8 @@ trait HasQuery
 {
     protected Builder|Relation|Closure|null $query = null;
 
+    protected ?Closure $queryModifier = null;
+
     protected ?string $modelLabel = null;
 
     protected ?string $pluralModelLabel = null;
@@ -17,6 +19,13 @@ trait HasQuery
     public function query(Builder|Relation|Closure|null $query): static
     {
         $this->query = $query;
+
+        return $this;
+    }
+
+    public function modifyQueryUsing(?Closure $callback): static
+    {
+        $this->queryModifier = $callback;
 
         return $this;
     }
@@ -37,7 +46,15 @@ trait HasQuery
 
     public function getQuery(): Builder|Relation|null
     {
-        return $this->evaluate($this->query);
+        $query = $this->evaluate($this->query);
+
+        if ($query && $this->queryModifier) {
+            $query = $this->evaluate($this->queryModifier, [
+                'query' => $query,
+            ]);
+        }
+
+        return $query;
     }
 
     public function getModelLabel(): ?string

@@ -50,10 +50,10 @@ trait InteractsWithTree
 
     public function getTreeRecords(): array
     {
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
+        $query = $this->getTree()->getQuery();
 
-        // Get all records ordered
-        $nodes = $modelClass::query()
+        // Get all records ordered, using the configured query
+        $nodes = (clone $query)
             ->orderBy('order')
             ->orderBy('id')
             ->get();

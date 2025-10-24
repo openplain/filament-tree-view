@@ -126,8 +126,8 @@ trait InteractsWithTree
         $position = $data['position'] ?? 'after';
         $referenceId = $data['referenceId'] ?? null;
 
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
-        $node = $modelClass::find($nodeId);
+        // Use the configured tree query instead of direct model query
+        $node = (clone $this->getTree()->getQuery())->find($nodeId);
 
         if (! $node) {
             return;
@@ -156,20 +156,23 @@ trait InteractsWithTree
 
     protected function reorderSiblings(?int $parentId): void
     {
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
-        $model = new $modelClass;
+        $query = $this->getTree()->getQuery();
+        $model = $query->getModel();
         $rootValue = $model->getParentKeyDefaultValue();
         $parentKeyName = $model->getParentKeyName();
+
+        // Use the configured tree query as base
+        $siblings = clone $query;
 
         if ($parentId === -1 || $parentId === null || $this->isRootValue($parentId)) {
             // Query for root nodes
             if ($rootValue === null) {
-                $siblings = $modelClass::whereNull($parentKeyName);
+                $siblings = $siblings->whereNull($parentKeyName);
             } else {
-                $siblings = $modelClass::where($parentKeyName, $rootValue);
+                $siblings = $siblings->where($parentKeyName, $rootValue);
             }
         } else {
-            $siblings = $modelClass::where($parentKeyName, $parentId);
+            $siblings = $siblings->where($parentKeyName, $parentId);
         }
 
         $siblings = $siblings->orderBy('order')->orderBy('id')->get();
@@ -186,20 +189,23 @@ trait InteractsWithTree
 
     protected function reorderSiblingsWithInsert(int $parentId, int $nodeId, string $position, ?int $referenceId): void
     {
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
-        $model = new $modelClass;
+        $query = $this->getTree()->getQuery();
+        $model = $query->getModel();
         $rootValue = $model->getParentKeyDefaultValue();
         $parentKeyName = $model->getParentKeyName();
+
+        // Use the configured tree query as base
+        $siblings = clone $query;
 
         if ($parentId === -1 || $this->isRootValue($parentId)) {
             // Query for root nodes
             if ($rootValue === null) {
-                $siblings = $modelClass::whereNull($parentKeyName);
+                $siblings = $siblings->whereNull($parentKeyName);
             } else {
-                $siblings = $modelClass::where($parentKeyName, $rootValue);
+                $siblings = $siblings->where($parentKeyName, $rootValue);
             }
         } else {
-            $siblings = $modelClass::where($parentKeyName, $parentId);
+            $siblings = $siblings->where($parentKeyName, $parentId);
         }
 
         $siblings = $siblings->orderBy('order')->orderBy('id')->get();
@@ -263,9 +269,8 @@ trait InteractsWithTree
      */
     public function getTreeRecord(int|string $key): ?\Illuminate\Database\Eloquent\Model
     {
-        $modelClass = $this->getTree()->getQuery()->getModel()::class;
-
-        return $modelClass::find($key);
+        // Use the configured tree query to respect modifyQueryUsing()
+        return (clone $this->getTree()->getQuery())->find($key);
     }
 
     /**

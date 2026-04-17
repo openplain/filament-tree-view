@@ -21,11 +21,42 @@ trait InteractsWithTree
 
     public ?array $selectedRecords = [];
 
+    /**
+     * Snapshot of mountedActions captured during the boot phase, before
+     * bootedInteractsWithActions() can clear them. Tree record actions are not
+     * yet in cachedActions when bootedInteractsWithActions() runs (it comes from a
+     * parent class and therefore executes first), so caching fails and mountedActions
+     * is reset to []. bootedInteractsWithTree() uses this snapshot to restore the
+     * mounted action state after the tree has registered its actions.
+     *
+     * @var array<array<string, mixed>>
+     */
+    protected array $preMountedActionsSnapshot = [];
+
+    public function bootInteractsWithTree(): void
+    {
+        // Runs during Livewire's boot phase, before any bootedXxx() hooks fire.
+        // Capture mountedActions now so bootedInteractsWithTree() can restore them
+        // if bootedInteractsWithActions() cleared them.
+        $this->preMountedActionsSnapshot = $this->mountedActions ?? [];
+    }
+
     public function bootedInteractsWithTree(): void
     {
         $this->tree = $this->tree($this->makeTree());
 
-        $this->cacheMountedActions($this->mountedActions);
+        // bootedInteractsWithActions() runs before this method and may have cleared
+        // mountedActions when it failed to resolve tree actions (not yet registered).
+        // Restore from the snapshot captured in bootInteractsWithTree().
+        $actionsToRestore = ! empty($this->mountedActions)
+            ? $this->mountedActions
+            : $this->preMountedActionsSnapshot;
+
+        if (filled($actionsToRestore) && ! empty($this->cacheMountedActions($actionsToRestore))) {
+            $this->mountedActions = $actionsToRestore;
+        } else {
+            $this->cacheMountedActions($this->mountedActions);
+        }
     }
 
     public function tree(Tree $tree): Tree

@@ -260,6 +260,7 @@ public static function tree(Tree $tree): Tree
 | `maxDepth(int\|null)` | 10 levels | Restrict maximum tree depth (pass null for unlimited) |
 | `collapsible(bool)` | Enabled | Individual toggles + header Expand All/Collapse All buttons |
 | `collapsed()` | Expanded | Start with nodes collapsed instead of expanded |
+| `reorderable(bool)` | Enabled | Drag-and-drop reordering; disable to render a read-only tree |
 | `autoSave()` | Disabled | Save changes immediately on drag-and-drop |
 
 **Common Patterns:**
@@ -282,6 +283,12 @@ return $tree
 return $tree
     ->fields([...])
     ->autoSave();
+
+// Read-only tree - disable drag-and-drop reordering
+// (also hides drag handles and the manual save/cancel buttons)
+return $tree
+    ->fields([...])
+    ->reorderable(false);
 ```
 
 ### Custom Fields

@@ -131,11 +131,10 @@ export default class FilamentTree {
                 element: item,
                 dragHandle: handle,
                 getInitialData: () => {
-                    // Parse parentId, treating -1 as null (root level)
+                    // Treat '-1' as null (root level); preserve string IDs as-is (supports UUIDs)
                     let parentId = null;
                     if (item.dataset.parentId) {
-                        const parsed = parseInt(item.dataset.parentId);
-                        parentId = parsed === -1 ? null : parsed;
+                        parentId = item.dataset.parentId === '-1' ? null : item.dataset.parentId;
                     }
 
                     return {
@@ -261,12 +260,10 @@ export default class FilamentTree {
                         };
                     } else if (instruction.operation === 'reorder-before') {
                         const targetElement = document.querySelector(`[data-item-id="${targetId}"]`);
-                        // Parse targetParentId, treating -1 as null (root level)
-                        let targetParentId = null;
-                        if (targetElement?.dataset.parentId) {
-                            const parsed = parseInt(targetElement.dataset.parentId);
-                            targetParentId = parsed === -1 ? null : parsed;
-                        }
+                        // Treat '-1' as null (root level); preserve string IDs as-is (supports UUIDs)
+                        const targetParentId = (targetElement?.dataset.parentId && targetElement.dataset.parentId !== '-1')
+                            ? targetElement.dataset.parentId
+                            : null;
                         moveData = {
                             nodeId: sourceId,
                             newParentId: targetParentId,
@@ -275,12 +272,10 @@ export default class FilamentTree {
                         };
                     } else if (instruction.operation === 'reorder-after') {
                         const targetElement = document.querySelector(`[data-item-id="${targetId}"]`);
-                        // Parse targetParentId, treating -1 as null (root level)
-                        let targetParentId = null;
-                        if (targetElement?.dataset.parentId) {
-                            const parsed = parseInt(targetElement.dataset.parentId);
-                            targetParentId = parsed === -1 ? null : parsed;
-                        }
+                        // Treat '-1' as null (root level); preserve string IDs as-is (supports UUIDs)
+                        const targetParentId = (targetElement?.dataset.parentId && targetElement.dataset.parentId !== '-1')
+                            ? targetElement.dataset.parentId
+                            : null;
                         moveData = {
                             nodeId: sourceId,
                             newParentId: targetParentId,

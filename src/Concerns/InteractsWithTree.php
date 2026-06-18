@@ -111,11 +111,16 @@ trait InteractsWithTree
     protected function isRootValue(mixed $value): bool
     {
         $rootValue = $this->getRootParentValue();
-        
+    
+        if ($rootValue === null) {
+            return $value === null
+                || $value === ''
+                || $value === -1
+                || $value === '-1';
+        }
         // Loose comparison to handle -1 vs "-1" etc
         return $value == $rootValue;
     }
-
     protected function buildNestedArray($nodes, $parentId = null): array
     {
         $branch = [];
